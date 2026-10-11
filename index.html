@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polyglot Arcade - Çok Oyunculu</title>
-    <!-- PeerJS Kütüphanesi: İki cihazın internet üzerinden birbirine bağlanmasını sağlar -->
+    <title>Polyglot Arcade - Ultimate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.1/peerjs.min.js"></script>
     <style>
         :root {
+            /* Koyu Tema (Varsayılan) */
             --bg-color: #1a1a2e; --panel-bg: #16213e; --primary: #0f3460;
             --accent: #e94560; --text: #ffffff; --success: #4caf50; --danger: #f44336;
+            --shop-bg: #222;
         }
+        body.light-mode {
+            /* Açık Tema */
+            --bg-color: #f4f4f9; --panel-bg: #ffffff; --primary: #3498db;
+            --accent: #e74c3c; --text: #333333; --shop-bg: #f0f0f0;
+        }
+
         body {
             margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-color); color: var(--text);
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-            overflow-x: hidden; touch-action: manipulation;
+            overflow-x: hidden; touch-action: manipulation; transition: 0.3s;
         }
         h1, h2, h3 { text-align: center; margin-top: 15px; }
-        .container { width: 95%; max-width: 800px; background: var(--panel-bg); padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); box-sizing: border-box;}
+        .container { width: 95%; max-width: 800px; background: var(--panel-bg); padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); box-sizing: border-box; transition: 0.3s;}
         .hidden { display: none !important; }
         
         button {
@@ -29,528 +36,552 @@
         button:active { transform: scale(0.95); }
         input, textarea, select {
             width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #555;
-            background: rgba(255,255,255,0.1); color: white; font-size: 16px; box-sizing: border-box;
+            background: rgba(128,128,128,0.1); color: var(--text); font-size: 16px; box-sizing: border-box;
         }
 
-        .mode-selector { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; margin-top: 20px;}
-        .mode-btn { padding: 20px; font-size: 18px; flex: 1; min-width: 200px; background: var(--primary); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;}
+        .mode-btn { padding: 20px; font-size: 18px; flex: 1; min-width: 200px; background: var(--primary); }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;}
+
+        /* AVATAR & DÜKKAN TASARIMI */
+        .avatar-container { display: flex; flex-direction: column; align-items: center; transform: scale(1.2); margin: 20px 0;}
+        .avatar-hat { font-size: 30px; margin-bottom: -15px; z-index: 3; position: relative;}
+        .avatar-face { font-size: 40px; z-index: 2; position: relative;}
+        .avatar-body { width: 40px; height: 35px; border-radius: 10px 10px 0 0; margin-top: -5px; z-index: 1;}
+        .avatar-legs { width: 40px; height: 25px; border-radius: 0 0 10px 10px;}
         
-        /* Mod 2: Kovboy & Lobi */
-        .lobby-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom:15px; text-align:center;}
+        .customizer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; background: var(--shop-bg); padding: 15px; border-radius: 8px;}
+        .store-item { background: var(--shop-bg); padding: 15px; border-radius: 8px; text-align: center; border: 2px solid #555; display:flex; flex-direction:column; align-items:center; justify-content:space-between;}
+        .store-item.owned { border-color: var(--success); }
+        .store-item.equipped { border-color: gold; box-shadow: 0 0 10px gold; }
+
+        /* OYUN İÇİ UI */
         .duel-arena { display: flex; justify-content: space-between; position: relative; height: 350px; background: #2a1b1b; border-radius: 10px; padding: 20px;}
-        .player { width: 35%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; z-index: 2;}
+        .player { width: 35%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; z-index: 2; align-items: center;}
         .hp-bar-container { width: 100%; height: 20px; background: #555; border-radius: 10px; overflow: hidden; margin-bottom: 5px;}
-        .hp-bar { width: 100%; height: 100%; background: var(--success); transition: width 0.3s; }
-        .cowboy-avatar { font-size: 60px; margin: 10px 0; }
-        .player-name { font-weight: bold; font-size:18px; color: #aaa;}
-        
+        .hp-bar { width: 100%; height: 100%; background: var(--success); transition: 0.3s; }
         .duel-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; z-index:10;}
-        .timer-display { font-size: 24px; color: yellow; font-weight:bold; background:rgba(0,0,0,0.5); padding:5px 15px; border-radius:10px; display:inline-block; margin-bottom:10px;}
-        #duel-target { font-size: 22px; margin-bottom:10px; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px;}
-        .duel-options { display: flex; justify-content: space-between; width: 100%; gap: 10px;}
-        .duel-opt { background: #444; padding: 15px 5px; border-radius: 8px; flex: 1; font-weight: bold; font-size: 18px; cursor: pointer; border: 2px solid #666; user-select: none;}
-        .duel-opt:active { background: var(--accent); border-color: white; }
-
-        /* Kazanan Animasyonu */
-        #winner-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.85); display: flex; flex-direction:column;
-            align-items: center; justify-content: center; z-index: 100;
-        }
-        @keyframes winnerAnim {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 20px gold, 0 0 40px red; }
-            100% { transform: scale(1.2); opacity: 1; text-shadow: 0 0 10px gold; }
-        }
-        .winner-text { animation: winnerAnim 1.5s forwards; font-size: 50px; color: gold; margin:0;}
-        .winner-sub { font-size: 24px; color: white; margin-top: 10px; }
-
-        /* Mod 3: Araba & Mobil Butonlar */
-        .road-container { position: relative; width: 100%; height: 350px; background: #333; border-left: 5px dashed white; border-right: 5px dashed white; overflow: hidden; margin-bottom: 10px;}
-        .lane-markers { position: absolute; width: 100%; height: 100%; display: flex; justify-content: space-evenly; pointer-events: none;}
+        .duel-opt { background: #444; padding: 15px 5px; border-radius: 8px; flex: 1; font-weight: bold; font-size: 18px; cursor: pointer; border: 2px solid #666;}
+        
+        /* ARABA YOLU */
+        .road-container { position: relative; width: 100%; height: 350px; background: #333; border-left: 5px dashed white; border-right: 5px dashed white; overflow: hidden;}
         .lane-marker { width: 5px; height: 100%; border-left: 5px dashed rgba(255,255,255,0.3); }
-        .car { position: absolute; bottom: 20px; width: 60px; height: 80px; font-size: 50px; text-align: center; line-height: 80px; transition: left 0.15s ease-out; z-index: 10;}
-        .obstacle { position: absolute; top: -60px; width: 28%; height: 50px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 8px; text-align: center; padding: 5px; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
-        
+        .car { position: absolute; bottom: 20px; font-size: 50px; transition: left 0.15s ease-out; z-index: 10;}
+        .obstacle { position: absolute; top: -60px; width: 28%; height: 50px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
         .lane-0 { left: 2.5%; } .lane-1 { left: 35.5%; } .lane-2 { left: 69%; }
-        .car.lane-0 { left: calc(16.6% - 30px); } .car.lane-1 { left: calc(50% - 30px); } .car.lane-2 { left: calc(83.3% - 30px); }
-        
-        #car-hud { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 18px; font-weight:bold;}
-        .mobile-car-controls { display: flex; justify-content: space-between; gap:10px; width: 100%; margin-top: 10px; }
-        .mobile-car-controls button { flex: 1; height: 60px; font-size: 24px; background: var(--primary); border: 2px solid #555; border-radius: 12px; margin:0;}
+        .car.lane-0 { left: calc(16.6% - 25px); } .car.lane-1 { left: calc(50% - 25px); } .car.lane-2 { left: calc(83.3% - 25px); }
+
+        #theme-toggle { position: absolute; top: 10px; right: 10px; background: transparent; border: 2px solid var(--text); color: var(--text); padding: 5px 10px; }
+        .coin-display { font-size: 20px; color: gold; font-weight: bold; text-align: center; margin-bottom: 10px;}
     </style>
 </head>
 <body>
-
+    <button id="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
     <h1>🎮 Polyglot Arcade</h1>
+    <div class="coin-display" id="global-coins">💰 Bakiye: 0 Altın</div>
 
-    <!-- EKRAN 1: KELİME GİRİŞİ -->
+    <!-- ANA MENÜ VE VERİ GİRİŞİ -->
     <div id="screen-menu" class="container">
+        <div class="flex-row">
+            <button onclick="switchScreen('screen-store')" style="background:var(--primary)">🛒 Dükkan & Modifiye</button>
+            <button onclick="switchScreen('screen-avatar')" style="background:var(--primary)">🤠 Avatarını Düzenle</button>
+        </div>
+        
         <h2>Kütüphaneni Yarat</h2>
-        <p>Her satıra <b>Öğrendiğin Kelime - Kendi Dilindeki Anlamı</b> şeklinde gir. (Örn: İspanyolca/İngilizce - Türkçe)</p>
-        <textarea id="wordInput" rows="6">Hola - Merhaba
-Gracias - Teşekkürler
+        <p style="font-size:14px;">Kategorileri <b>[Kategori Adı]</b> şeklinde belirtebilirsin.</p>
+        <textarea id="wordInput" rows="8">
+[İspanyolca]
+Hola - Merhaba
 Amigo - Arkadaş
 Agua - Su
 Fuego - Ateş
 Tiempo - Zaman
-Camino - Yol</textarea>
-        <button onclick="saveWords()" style="width:100%;">Kelimeleri Kaydet & Başla</button>
-        <p id="menu-feedback" style="text-align:center; font-weight:bold;"></p>
 
-        <div id="game-modes" class="hidden">
-            <div class="mode-selector">
-                <button class="mode-btn" onclick="switchScreen('screen-mode1'); nextScramble();">🌪️ Karışık Harfler</button>
-                <button class="mode-btn" onclick="openMultiplayerLobby()">🤠 Kovboy Düellosu (2 Kişilik)</button>
-                <button class="mode-btn" onclick="startMode3()">🚗 Kelime Şoförü</button>
+[Yazılım Terimleri]
+Loop - Döngü
+Array - Dizi
+String - Metin
+Function - Fonksiyon
+Variable - Değişken</textarea>
+        <button onclick="saveWords()" style="width:100%;">Kelimeleri Kaydet</button>
+        
+        <div id="category-selector" class="hidden" style="margin-top:15px; text-align:center;">
+            <h3>Çalışılacak Kategori:</h3>
+            <select id="cat-select"></select>
+            <div class="flex-row" style="margin-top:15px;">
+                <button class="mode-btn" onclick="startMode('scramble')">🌪️ Karışık Harfler</button>
+                <button class="mode-btn" onclick="startMode('duel')">🤠 Kovboy Düellosu</button>
+                <button class="mode-btn" onclick="startMode('car')">🚌 Kelime Şoförü</button>
             </div>
         </div>
     </div>
 
-    <!-- EKRAN 2: MOD 1 (Basit Karışık Harfler) -->
-    <div id="screen-mode1" class="container hidden">
-        <div class="top-bar"><span>Mod: Karışık Harfler</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+    <!-- AVATAR MODİFİYE EKRANI -->
+    <div id="screen-avatar" class="container hidden">
+        <div class="top-bar"><span>Avatar Düzenleyici</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+        <div class="avatar-container" id="preview-avatar">
+            <!-- JS ile doldurulacak -->
+        </div>
+        <div class="customizer-grid">
+            <div>
+                <label>Şapka/Saç:</label>
+                <select id="av-hat" onchange="updateAvatarPreview()">
+                    <!-- İSKELET: BURAYA YENİ EMOJİLER EKLERSİN -->
+                    <option value="🤠">Kovboy 🤠</option>
+                    <option value="🎩">Sihirbaz 🎩</option>
+                    <option value="🧢">Şapka 🧢</option>
+                    <option value="👑">Kral 👑</option>
+                    <option value="🪖">Asker 🪖</option>
+                    <option value="👱‍♂️">Sarı Saç 👱‍♂️</option>
+                    <option value="👩‍🦰">Kızıl Saç 👩‍🦰</option>
+                    <option value="">Hiçbiri</option>
+                </select>
+            </div>
+            <div>
+                <label>Yüz İfadesi:</label>
+                <select id="av-face" onchange="updateAvatarPreview()">
+                    <option value="😎">Havalı 😎</option>
+                    <option value="😃">Gülen 😃</option>
+                    <option value="😡">Sinirli 😡</option>
+                    <option value="🤓">İnek 🤓</option>
+                    <option value="👽">Uzaylı 👽</option>
+                    <option value="🤡">Palyaço 🤡</option>
+                </select>
+            </div>
+            <div>
+                <label>Üst Kıyafet Rengi:</label>
+                <input type="color" id="av-body-color" value="#0f3460" onchange="updateAvatarPreview()">
+            </div>
+            <div>
+                <label>Alt Kıyafet Rengi:</label>
+                <input type="color" id="av-legs-color" value="#e94560" onchange="updateAvatarPreview()">
+            </div>
+        </div>
+        <button onclick="saveAvatar()" style="width:100%; margin-top:10px;">Kaydet</button>
+    </div>
+
+    <!-- DÜKKAN EKRANI -->
+    <div id="screen-store" class="container hidden">
+        <div class="top-bar"><span>Garaj & Dükkan</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+        <div class="coin-display" id="store-coins">💰 Bakiye: 0 Altın</div>
+        <p style="text-align:center; font-size:12px;">Doğru cevaplar sana altın kazandırır!</p>
+        
+        <div class="flex-row" id="store-grid">
+            <!-- İSKELET: BURAYA YENİ ARAÇLAR EKLERSİN -->
+            <!-- JS ile dinamik çizilecek -->
+        </div>
+    </div>
+
+    <!-- MOD 1: KARIŞIK HARFLER -->
+    <div id="screen-scramble" class="container hidden">
+        <div class="top-bar"><span>Karışık Harfler</span><button onclick="switchScreen('screen-menu')">🏠 Çıkış</button></div>
         <h2 id="scramble-word" style="font-size: 40px; letter-spacing: 5px; color: var(--accent);"></h2>
         <input type="text" id="scramble-input" placeholder="Doğrusu nedir?" onkeypress="if(event.key==='Enter') checkScramble()">
         <p id="scramble-feedback" style="text-align:center; height:20px;"></p>
-        <div style="text-align:center;"><button onclick="checkScramble()">Kontrol Et</button> <button onclick="nextScramble()">Geç ⏭️</button></div>
+        <div style="text-align:center;"><button onclick="checkScramble()">Kontrol Et</button></div>
     </div>
 
-    <!-- EKRAN 3: MOD 2 (MULTIPLAYER KOVBOY) -->
-    <div id="screen-mode2" class="container hidden">
-        <div class="top-bar"><span>Mod: Kovboy Düellosu</span><button onclick="goHomeFromDuel()">🏠 Çıkış</button></div>
+    <!-- MOD 2: KOVBOY DÜELLOSU -->
+    <div id="screen-duel" class="container hidden">
+        <div class="top-bar"><span>Kovboy Düellosu</span><button onclick="goHomeFromDuel()">🏠 Çıkış</button></div>
         
-        <!-- Lobi Arayüzü -->
         <div id="duel-lobby">
             <input type="text" id="player-name" placeholder="Oyuncu Adın (Örn: Zaze)" maxlength="12">
-            <div class="lobby-box">
-                <h3>Arkadaşını Davet Et</h3>
+            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; margin-bottom:10px; text-align:center;">
                 <button onclick="hostRoom()">Oda Kur</button>
-                <p id="lobby-status" style="color:yellow;"></p>
+                <p id="lobby-status" style="color:var(--success);"></p>
             </div>
-            <div class="lobby-box">
-                <h3>Veya Bir Odaya Katıl</h3>
-                <input type="text" id="join-code" placeholder="4 Haneli Oda Kodu" style="text-transform:uppercase; text-align:center; width:50%;">
+            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; text-align:center;">
+                <input type="text" id="join-code" placeholder="4 Haneli Oda Kodu" style="text-align:center; width:50%;">
                 <br><button onclick="joinRoom()" style="background:#2196F3;">Odaya Katıl</button>
-                <p id="join-status" style="color:yellow;"></p>
+                <p id="join-status" style="color:var(--success);"></p>
             </div>
         </div>
 
-        <!-- Oyun Arayüzü -->
         <div id="duel-game" class="hidden">
             <div class="duel-arena">
                 <div class="duel-ui">
-                    <div class="timer-display" id="duel-timer">Süre: 40</div>
-                    <div id="duel-target">Hedef Bekleniyor...</div>
-                    <div class="duel-options">
-                        <!-- Telefonda dokunmak, PC'de tıklamak veya Sol/Sağ ok kullanmak için -->
+                    <div style="font-size:24px; color:yellow; font-weight:bold; margin-bottom:5px;" id="duel-timer">40</div>
+                    <div id="duel-target" style="font-size:20px; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; color:white; margin-bottom:10px;">Bekleniyor...</div>
+                    <div style="display:flex; gap:10px;">
                         <div id="duel-opt1" class="duel-opt" onpointerdown="handleDuelInput(1)">?</div>
                         <div id="duel-opt2" class="duel-opt" onpointerdown="handleDuelInput(2)">?</div>
                     </div>
-                    <p id="duel-feedback" style="font-size:14px; margin-top:5px; color:#ddd;">Hazırlanın...</p>
                 </div>
                 
                 <div class="player" id="p1">
                     <div class="hp-bar-container"><div id="p1-hp" class="hp-bar"></div></div>
-                    <div class="cowboy-avatar" id="p1-avatar">🤠</div>
-                    <div class="player-name" id="p1-name-display">Sen</div>
+                    <div id="p1-avatar-render"></div> <!-- Avatar buraya gelecek -->
+                    <div style="font-weight:bold;" id="p1-name-display">Sen</div>
                 </div>
-                
                 <div class="player" id="p2">
                     <div class="hp-bar-container"><div id="p2-hp" class="hp-bar" style="background:#2196F3;"></div></div>
-                    <div class="cowboy-avatar" id="p2-avatar">🤠</div>
-                    <div class="player-name" id="p2-name-display">Rakip</div>
+                    <div id="p2-avatar-render"></div>
+                    <div style="font-weight:bold;" id="p2-name-display">Rakip</div>
                 </div>
             </div>
-            <p style="text-align:center; color:#888; font-size:12px;">Kontrol: Ekrandaki butonlara dokun veya Klavyede Sol / Sağ ok tuşlarını kullan.</p>
         </div>
     </div>
 
-    <!-- EKRAN 4: MOD 3 (ARABA) -->
-    <div id="screen-mode3" class="container hidden">
+    <!-- MOD 3: KELİME ŞOFÖRÜ -->
+    <div id="screen-car" class="container hidden">
         <div class="top-bar">
-            <span>Mod: Kelime Şoförü</span>
-            <div><select id="car-time-select" style="margin:0; padding:5px; width:auto;"><option value="60">1 Dk</option><option value="120">2 Dk</option></select></div>
+            <span>Kelime Şoförü</span>
             <button onclick="goHomeCar()">🏠 Çıkış</button>
         </div>
-        
-        <div id="car-hud">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
             <span id="car-timer-display">Süre: 60s</span>
-            <span id="car-lives-display">Can: ❤️❤️❤️</span>
+            <span id="car-lives-display">❤️ ❤️ ❤️</span>
             <span id="car-score-display">Skor: 0</span>
         </div>
-        <div id="car-target-word" style="text-align:center; font-size:20px; color:yellow; margin-bottom:10px;">Başlamak için butona basın...</div>
-
+        <div id="car-target-word" style="text-align:center; font-size:18px; color:var(--accent); font-weight:bold; margin-bottom:10px;">Başlıyor...</div>
+        
         <div class="road-container" id="road">
-            <div class="lane-markers"><div class="lane-marker"></div><div class="lane-marker"></div></div>
-            <div id="player-car" class="car lane-1">🚘</div>
+            <div style="position:absolute; width:100%; height:100%; display:flex; justify-content:space-evenly; pointer-events:none;">
+                <div class="lane-marker"></div><div class="lane-marker"></div>
+            </div>
+            <!-- Seçili araç emojisi buraya yansıyacak -->
+            <div id="player-car" class="car lane-1">🚗</div>
         </div>
         
-        <!-- Mobil Dostu Butonlar -->
-        <div class="mobile-car-controls">
-            <button onpointerdown="carLane=0; updateCarPosition()">⬅️ SOL</button>
-            <button onpointerdown="carLane=1; updateCarPosition()">⬆️ ORTA</button>
-            <button onpointerdown="carLane=2; updateCarPosition()">SAĞ ➡️</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onpointerdown="moveCar(-1)" style="flex:1; height:50px; font-size:20px;">⬅️ SOL</button>
+            <button onpointerdown="moveCar(1)" style="flex:1; height:50px; font-size:20px;">SAĞ ➡️</button>
         </div>
-        
-        <div style="text-align:center; margin-top:15px;">
-            <button id="car-start-btn" onclick="startCarGame()" style="width:100%; padding:15px; font-size:20px;">Yarışı Başlat</button>
-        </div>
-    </div>
-
-    <!-- KAZANAN ANİMASYONU EKRANI -->
-    <div id="winner-overlay" class="hidden">
-        <h1 id="winner-name" class="winner-text">İSİM</h1>
-        <div class="winner-sub">Kazandı! 🎉</div>
-        <button onclick="closeWinnerAnim()" style="margin-top:30px;">Kapat</button>
     </div>
 
     <script>
-        let wordList = [];
+        // --- VERİTABANI (LocalStorage) & DEĞİŞKENLER ---
+        let allWords = {}; // { "İspanyolca": [{target, native}], "Karışık": [] }
+        let activeWords = [];
         let activeScreen = 'screen-menu';
+        
+        // Kullanıcı Verileri
+        let userData = JSON.parse(localStorage.getItem('polyglotData')) || {
+            coins: 0,
+            theme: 'dark',
+            avatar: { hat: '🤠', face: '😎', body: '#0f3460', legs: '#e94560' },
+            inventory: ['car'],
+            equippedVehicle: 'car'
+        };
 
-        function switchScreen(screenId) {
-            document.getElementById(activeScreen).classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
-            activeScreen = screenId;
-        }
-        function getRandomInt(max) { return Math.floor(Math.random() * max); }
-        function shuffleString(str) {
-            let arr = str.split('');
-            for(let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr.join('');
-        }
+        const storeItems = [
+            { id: 'bicycle', icon: '🚲', name: 'Bisiklet', price: 100 },
+            { id: 'car', icon: '🚗', name: 'Standart Araba', price: 0 },
+            { id: 'motorcycle', icon: '🏍️', name: 'Motor', price: 250 },
+            { id: 'bus', icon: '🚌', name: 'Otobüs', price: 500 },
+            { id: 'sportscar', icon: '🏎️', name: 'Spor Araba', price: 1000 },
+            { id: 'rocket', icon: '🚀', name: 'Roket', price: 2500 } // Sürpriz :)
+        ];
 
-        function saveWords() {
-            const lines = document.getElementById('wordInput').value.split('\n');
-            wordList = [];
-            lines.forEach(line => {
-                if(line.includes('-')) {
-                    const parts = line.split('-');
-                    if(parts[0].trim() && parts[1].trim()) {
-                        wordList.push({ target: parts[0].trim(), native: parts[1].trim() });
-                    }
-                }
-            });
-            const fb = document.getElementById('menu-feedback');
-            if(wordList.length < 5) {
-                fb.style.color = "var(--danger)"; fb.innerText = "En az 5 kelime girmelisin!";
-                document.getElementById('game-modes').classList.add('hidden');
-            } else {
-                fb.style.color = "var(--success)"; fb.innerText = `${wordList.length} kelime yüklendi! Oyun Seç:`;
-                document.getElementById('game-modes').classList.remove('hidden');
-            }
-        }
+        // --- İLK YÜKLEME (INIT) ---
+        window.onload = () => {
+            if(userData.theme === 'light') document.body.classList.add('light-mode');
+            updateCoinsUI();
+            loadAvatarToUI();
+            renderStore();
+        };
 
-        // --- MOD 1: KARIŞIK HARFLER ---
-        let currScramble = null;
-        function nextScramble() {
-            currScramble = wordList[getRandomInt(wordList.length)];
-            document.getElementById('scramble-word').innerText = shuffleString(currScramble.target.toLowerCase()).toUpperCase();
-            document.getElementById('scramble-input').value = '';
-            document.getElementById('scramble-feedback').innerText = `İpucu: '${currScramble.native}'`;
-            document.getElementById('scramble-feedback').style.color = 'var(--text)';
+        function saveData() { localStorage.setItem('polyglotData', JSON.stringify(userData)); updateCoinsUI(); }
+        function addCoins(amount) { userData.coins += amount; saveData(); }
+        function updateCoinsUI() {
+            document.getElementById('global-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`;
+            document.getElementById('store-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`;
         }
-        function checkScramble() {
-            if(document.getElementById('scramble-input').value.trim().toLowerCase() === currScramble.target.toLowerCase()) {
-                document.getElementById('scramble-feedback').innerText = "✅ Doğru!";
-                document.getElementById('scramble-feedback').style.color = "var(--success)";
-                setTimeout(nextScramble, 800);
-            } else {
-                document.getElementById('scramble-feedback').innerText = "❌ Yanlış!";
-                document.getElementById('scramble-feedback').style.color = "var(--danger)";
-            }
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            userData.theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+            saveData();
+        }
+        function switchScreen(id) {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            activeScreen = id;
+            if(id === 'screen-store') renderStore();
         }
 
-        // --- MOD 2: MULTIPLAYER KOVBOY DÜELLOSU ---
-        let peer = null; let conn = null; let isHost = false;
-        let myName = ""; let oppName = "";
-        let p1Hp = 100; let p2Hp = 100;
-        let duelActive = false; let duelCorrectSide = 0;
-        let duelTimer = 40; let duelInterval = null;
-
-        function openMultiplayerLobby() {
-            switchScreen('screen-mode2');
-            document.getElementById('duel-lobby').classList.remove('hidden');
-            document.getElementById('duel-game').classList.add('hidden');
-            if(peer) { peer.destroy(); peer = null; }
+        // --- AVATAR OLUŞTURUCU ---
+        function generateAvatarHTML(avData) {
+            return `
+            <div class="avatar-container" style="margin:0; transform:scale(0.8);">
+                <div class="avatar-hat">${avData.hat}</div>
+                <div class="avatar-face">${avData.face}</div>
+                <div class="avatar-body" style="background-color: ${avData.body};"></div>
+                <div class="avatar-legs" style="background-color: ${avData.legs};"></div>
+            </div>`;
         }
-        function goHomeFromDuel() {
-            if(peer) peer.destroy();
-            clearInterval(duelInterval);
+        function loadAvatarToUI() {
+            document.getElementById('av-hat').value = userData.avatar.hat;
+            document.getElementById('av-face').value = userData.avatar.face;
+            document.getElementById('av-body-color').value = userData.avatar.body;
+            document.getElementById('av-legs-color').value = userData.avatar.legs;
+            updateAvatarPreview();
+        }
+        function updateAvatarPreview() {
+            const av = {
+                hat: document.getElementById('av-hat').value,
+                face: document.getElementById('av-face').value,
+                body: document.getElementById('av-body-color').value,
+                legs: document.getElementById('av-legs-color').value
+            };
+            document.getElementById('preview-avatar').innerHTML = generateAvatarHTML(av);
+        }
+        function saveAvatar() {
+            userData.avatar = {
+                hat: document.getElementById('av-hat').value, face: document.getElementById('av-face').value,
+                body: document.getElementById('av-body-color').value, legs: document.getElementById('av-legs-color').value
+            };
+            saveData();
             switchScreen('screen-menu');
         }
 
-        function hostRoom() {
-            myName = document.getElementById('player-name').value || "Oyuncu1";
-            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-            document.getElementById('lobby-status').innerText = "Bağlanıyor...";
-            
-            peer = new Peer('polyglot-' + code);
-            peer.on('open', () => {
-                isHost = true;
-                document.getElementById('lobby-status').innerText = `Oda Kuruldu! Kod: ${code}. Rakip bekleniyor...`;
-            });
-            peer.on('connection', (c) => {
-                conn = c; setupConnection();
+        // --- DÜKKAN MOTORU ---
+        function renderStore() {
+            const grid = document.getElementById('store-grid');
+            grid.innerHTML = '';
+            storeItems.forEach(item => {
+                const isOwned = userData.inventory.includes(item.id);
+                const isEquipped = userData.equippedVehicle === item.id;
+                
+                let btnHTML = isEquipped ? `<button disabled style="background:#555">Kullanılıyor</button>` :
+                              isOwned ? `<button onclick="equipItem('${item.id}')" style="background:var(--success)">Seç</button>` :
+                              `<button onclick="buyItem('${item.id}', ${item.price})">Satın Al (${item.price} 💰)</button>`;
+                
+                grid.innerHTML += `
+                <div class="store-item ${isOwned ? 'owned' : ''} ${isEquipped ? 'equipped' : ''}">
+                    <div style="font-size:40px;">${item.icon}</div>
+                    <div style="font-weight:bold; margin:10px 0;">${item.name}</div>
+                    ${btnHTML}
+                </div>`;
             });
         }
+        function buyItem(id, price) {
+            if(userData.coins >= price) {
+                userData.coins -= price;
+                userData.inventory.push(id);
+                saveData(); renderStore();
+            } else alert("Yeterli altının yok. Oyun oynayarak kazan!");
+        }
+        function equipItem(id) { userData.equippedVehicle = id; saveData(); renderStore(); }
+        function getEquippedIcon() { return storeItems.find(i => i.id === userData.equippedVehicle).icon; }
 
+        // --- KELİME AYRIŞTIRICI ---
+        function saveWords() {
+            const text = document.getElementById('wordInput').value;
+            const lines = text.split('\n');
+            allWords = {}; let currentCat = "Genel"; let totalCount = 0;
+
+            lines.forEach(line => {
+                let txt = line.trim();
+                if(txt.startsWith('[') && txt.endsWith(']')) {
+                    currentCat = txt.slice(1, -1);
+                } else if(txt.includes('-')) {
+                    const [t, n] = txt.split('-');
+                    if(t.trim() && n.trim()) {
+                        if(!allWords[currentCat]) allWords[currentCat] = [];
+                        allWords[currentCat].push({ target: t.trim(), native: n.trim() });
+                        totalCount++;
+                    }
+                }
+            });
+
+            if(totalCount < 5) return alert("En az 5 kelime girmelisin!");
+            
+            // Tüm kelimeleri içeren Karışık kategorisi
+            allWords["Tümü (Karışık)"] = [];
+            for(let cat in allWords) {
+                if(cat !== "Tümü (Karışık)") allWords["Tümü (Karışık)"] = allWords["Tümü (Karışık)"].concat(allWords[cat]);
+            }
+
+            const select = document.getElementById('cat-select');
+            select.innerHTML = '';
+            for(let cat in allWords) select.innerHTML += `<option value="${cat}">${cat} (${allWords[cat].length} kelime)</option>`;
+            
+            document.getElementById('category-selector').classList.remove('hidden');
+        }
+
+        function startMode(mode) {
+            const selectedCat = document.getElementById('cat-select').value;
+            activeWords = allWords[selectedCat];
+            if(mode === 'scramble') { switchScreen('screen-scramble'); nextScramble(); }
+            if(mode === 'duel') { switchScreen('screen-duel'); document.getElementById('duel-lobby').classList.remove('hidden'); document.getElementById('duel-game').classList.add('hidden'); }
+            if(mode === 'car') { switchScreen('screen-car'); startCarGame(); }
+        }
+
+        // ==========================================
+        // OYUN FONKSİYONLARI BURADAN İTİBAREN BAŞLAR
+        // ==========================================
+        function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        function shuffle(str) { return str.split('').sort(()=>0.5-Math.random()).join(''); }
+
+        // MOD 1: SCRAMBLE
+        let currScramble = null;
+        function nextScramble() {
+            currScramble = getRandom(activeWords);
+            document.getElementById('scramble-word').innerText = shuffle(currScramble.target).toUpperCase();
+            document.getElementById('scramble-input').value = '';
+            document.getElementById('scramble-feedback').innerText = `Anlamı: ${currScramble.native}`;
+        }
+        function checkScramble() {
+            if(document.getElementById('scramble-input').value.trim().toLowerCase() === currScramble.target.toLowerCase()) {
+                document.getElementById('scramble-feedback').innerText = "+5 Altın! 💰 ✅";
+                addCoins(5);
+                setTimeout(nextScramble, 800);
+            } else document.getElementById('scramble-feedback').innerText = "❌ Yanlış!";
+        }
+
+        // MOD 2: MULTIPLAYER DÜELLO
+        let peer, conn, isHost = false, myName="", oppName="", oppAvatar={};
+        let p1Hp=100, p2Hp=100, duelActive=false, duelSide=0, duelTimer=40, duelInt;
+
+        function hostRoom() {
+            myName = document.getElementById('player-name').value || "Oyuncu1";
+            const code = Math.random().toString(36).substring(2,6).toUpperCase();
+            document.getElementById('lobby-status').innerText = "Bağlanıyor...";
+            peer = new Peer('polyglot-' + code);
+            peer.on('open', () => document.getElementById('lobby-status').innerText = `Oda Kodun: ${code}. Rakip bekleniyor...`);
+            peer.on('connection', (c) => { isHost = true; conn = c; setupConn(); });
+        }
         function joinRoom() {
             myName = document.getElementById('player-name').value || "Oyuncu2";
             const code = document.getElementById('join-code').value.toUpperCase();
-            if(code.length !== 4) return alert("Geçerli bir kod girin.");
-            document.getElementById('join-status').innerText = "Aranıyor...";
-            
+            document.getElementById('join-status').innerText = "Bağlanıyor...";
             peer = new Peer();
-            peer.on('open', () => {
-                isHost = false;
-                conn = peer.connect('polyglot-' + code);
-                setupConnection();
-            });
+            peer.on('open', () => { isHost=false; conn = peer.connect('polyglot-'+code); setupConn(); });
         }
-
-        function setupConnection() {
+        function setupConn() {
             conn.on('open', () => {
                 document.getElementById('duel-lobby').classList.add('hidden');
                 document.getElementById('duel-game').classList.remove('hidden');
-                
-                // İsimleri senkronize et
-                conn.send({ type: 'hello', name: myName });
-                
-                if(isHost) {
-                    setTimeout(() => {
-                        conn.send({ type: 'start', words: wordList, hostName: myName });
-                        startDuelInit();
-                    }, 1000);
-                }
+                conn.send({ type: 'hello', name: myName, avatar: userData.avatar });
+                if(isHost) setTimeout(() => { conn.send({type:'start', words: activeWords, hostName: myName, hostAvatar: userData.avatar}); startDuelInit(); }, 1000);
             });
-
-            conn.on('data', (data) => {
-                if(data.type === 'hello') {
-                    oppName = data.name;
-                    document.getElementById('p1-name-display').innerText = isHost ? myName : oppName;
-                    document.getElementById('p2-name-display').innerText = isHost ? oppName : myName;
+            conn.on('data', (d) => {
+                if(d.type === 'hello') { oppName = d.name; oppAvatar = d.avatar; renderDuelAvatars(); }
+                if(d.type === 'start') { activeWords = d.words; oppName = d.hostName; oppAvatar = d.hostAvatar; renderDuelAvatars(); }
+                if(d.type === 'round') { 
+                    document.getElementById('duel-target').innerText = d.target;
+                    document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2;
+                    duelSide = d.side; duelActive = true;
                 }
-                else if(data.type === 'start') {
-                    wordList = data.words; oppName = data.hostName;
-                    document.getElementById('p1-name-display').innerText = oppName; // P1 her zaman Host görünümünde
-                    document.getElementById('p2-name-display').innerText = myName;
+                if(d.type === 'hit' && isHost) processDuelHit(d.side, 2);
+                if(d.type === 'state') {
+                    p1Hp = d.p1; p2Hp = d.p2; updateDuelHP();
+                    if(d.msg) document.getElementById('duel-target').innerText = d.msg;
                 }
-                else if(data.type === 'round') {
-                    document.getElementById('duel-target').innerText = data.target;
-                    document.getElementById('duel-opt1').innerText = data.opt1;
-                    document.getElementById('duel-opt2').innerText = data.opt2;
-                    duelCorrectSide = data.correctSide;
-                    duelActive = true;
-                    if(!isHost && duelTimer === 40) startClientTimer(); // Sadece görsel sayaç
-                }
-                else if(data.type === 'hit') {
-                    if(isHost) processHit(data.side, 2); // Misafir vurdu
-                }
-                else if(data.type === 'state') {
-                    p1Hp = data.p1Hp; p2Hp = data.p2Hp;
-                    document.getElementById('p1-hp').style.width = p1Hp + '%';
-                    document.getElementById('p2-hp').style.width = p2Hp + '%';
-                    document.getElementById('duel-feedback').innerText = data.msg;
-                    duelTimer = data.time; document.getElementById('duel-timer').innerText = "Süre: " + duelTimer;
-                    
-                    // Avatar tepkileri
-                    if(data.hitPlayer === 1) document.getElementById('p1-avatar').innerText = "🤕";
-                    else if(data.hitPlayer === 2) document.getElementById('p2-avatar').innerText = "🤕";
-                    setTimeout(()=>{ document.getElementById('p1-avatar').innerText="🤠"; document.getElementById('p2-avatar').innerText="🤠";}, 1000);
-                }
-                else if(data.type === 'gameover') {
-                    showWinnerAnim(data.winner);
+                if(d.type === 'gameover') { 
+                    alert(`${d.winner} Kazandı!`); 
+                    if(d.winner === myName) { alert("+50 Altın Kazandın!"); addCoins(50); }
+                    goHomeFromDuel(); 
                 }
             });
         }
-
+        function renderDuelAvatars() {
+            document.getElementById('p1-name-display').innerText = isHost ? myName : oppName;
+            document.getElementById('p2-name-display').innerText = isHost ? oppName : myName;
+            document.getElementById('p1-avatar-render').innerHTML = generateAvatarHTML(isHost ? userData.avatar : oppAvatar);
+            document.getElementById('p2-avatar-render').innerHTML = generateAvatarHTML(isHost ? oppAvatar : userData.avatar);
+        }
         function startDuelInit() {
-            p1Hp = 100; p2Hp = 100; duelTimer = 40;
-            document.getElementById('p1-hp').style.width = '100%'; document.getElementById('p2-hp').style.width = '100%';
-            conn.send({type:'state', p1Hp:100, p2Hp:100, msg:"Oyun Başladı!", time:40});
-            
-            duelInterval = setInterval(() => {
-                duelTimer--;
-                document.getElementById('duel-timer').innerText = "Süre: " + duelTimer;
-                if(duelTimer <= 0) endDuel();
-            }, 1000);
-            
-            setTimeout(nextDuelRound, 1500);
+            p1Hp = 100; p2Hp = 100; updateDuelHP(); duelTimer=40;
+            duelInt = setInterval(()=> { duelTimer--; document.getElementById('duel-timer').innerText = duelTimer; if(duelTimer<=0) endDuel(); }, 1000);
+            nextDuelRound();
         }
-
-        function startClientTimer() {
-            clearInterval(duelInterval);
-            duelInterval = setInterval(() => { 
-                duelTimer--; document.getElementById('duel-timer').innerText = "Süre: " + duelTimer; 
-            }, 1000);
-        }
-
         function nextDuelRound() {
-            if(!isHost || p1Hp <= 0 || p2Hp <= 0 || duelTimer <= 0) return;
-            const wordObj = wordList[getRandomInt(wordList.length)];
-            duelCorrectSide = Math.random() > 0.5 ? 1 : 2;
-            const wrongWord = shuffleString(wordObj.target);
-            
-            const roundData = {
-                type: 'round', target: wordObj.native.toUpperCase(),
-                opt1: duelCorrectSide === 1 ? wordObj.target : wrongWord,
-                opt2: duelCorrectSide === 1 ? wrongWord : wordObj.target,
-                correctSide: duelCorrectSide
-            };
-            
-            document.getElementById('duel-target').innerText = roundData.target;
-            document.getElementById('duel-opt1').innerText = roundData.opt1;
-            document.getElementById('duel-opt2').innerText = roundData.opt2;
-            document.getElementById('duel-feedback').innerText = "Ateş!";
+            if(!isHost || p1Hp<=0 || p2Hp<=0 || duelTimer<=0) return;
+            const w = getRandom(activeWords); duelSide = Math.random()>0.5?1:2;
+            const wrong = shuffle(w.target);
+            const d = { type:'round', target: w.native.toUpperCase(), opt1: duelSide===1?w.target:wrong, opt2: duelSide===1?wrong:w.target, side: duelSide };
+            conn.send(d); document.getElementById('duel-target').innerText = d.target;
+            document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2;
             duelActive = true;
-            conn.send(roundData);
         }
+        function handleDuelInput(s) {
+            if(!duelActive) return; duelActive = false;
+            if(isHost) processDuelHit(s, 1); else conn.send({type:'hit', side:s});
+        }
+        function processDuelHit(side, pNum) {
+            if(pNum===1) { if(side===duelSide) p2Hp-=20; else p1Hp-=20; }
+            else { if(side===duelSide) p1Hp-=20; else p2Hp-=20; }
+            conn.send({type:'state', p1:p1Hp, p2:p2Hp, msg: pNum===1?"Oyuncu 1 Ateş Etti!":"Oyuncu 2 Ateş Etti!"});
+            updateDuelHP();
+            if(p1Hp<=0 || p2Hp<=0) endDuel(); else setTimeout(nextDuelRound, 1200);
+        }
+        function updateDuelHP() { document.getElementById('p1-hp').style.width=p1Hp+'%'; document.getElementById('p2-hp').style.width=p2Hp+'%'; }
+        function endDuel() {
+            clearInterval(duelInt);
+            let winner = "Berabere"; if(p1Hp>p2Hp) winner=isHost?myName:oppName; else if(p2Hp>p1Hp) winner=isHost?oppName:myName;
+            if(isHost) conn.send({type:'gameover', winner});
+            if(winner === myName && isHost) { alert("+50 Altın Kazandın!"); addCoins(50); }
+            setTimeout(goHomeFromDuel, 1000);
+        }
+        function goHomeFromDuel() { if(peer) peer.destroy(); clearInterval(duelInt); switchScreen('screen-menu'); }
 
-        // Ortak Tuş & Tıklama Dinleyicisi
-        function handleDuelInput(side) {
-            if(!duelActive) return;
-            duelActive = false;
-            if(isHost) processHit(side, 1);
-            else conn.send({type: 'hit', side: side});
+        // MOD 3: ARABA (MODİFİYE DESTEKLİ)
+        let carLane=1, carLives=3, carScore=0, carTime=60, carInt, isCarActive=false, correctLane=0;
+        function goHomeCar() { clearInterval(carInt); isCarActive=false; switchScreen('screen-menu'); }
+        
+        function moveCar(dir) {
+            if(!isCarActive) return;
+            carLane += dir;
+            if(carLane < 0) carLane = 0; if(carLane > 2) carLane = 2;
+            document.getElementById('player-car').className = `car lane-${carLane}`;
         }
         
-        document.addEventListener('keydown', (e) => {
-            if(activeScreen === 'screen-mode2' && duelActive) {
-                if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') handleDuelInput(1);
-                if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') handleDuelInput(2);
-            }
-        });
-
-        function processHit(side, playerNum) {
-            let msg = ""; let hitPlayer = 0;
-            if(playerNum === 1) { // Host
-                if(side === duelCorrectSide) { p2Hp -= 20; msg = myName + " Doğru Vurdu! 🔫"; hitPlayer=2; }
-                else { p1Hp -= 20; msg = myName + " Kendini Vurdu! 💥"; hitPlayer=1;}
-            } else { // Joiner
-                if(side === duelCorrectSide) { p1Hp -= 20; msg = oppName + " Doğru Vurdu! 🔫"; hitPlayer=1; }
-                else { p2Hp -= 20; msg = oppName + " Kendini Vurdu! 💥"; hitPlayer=2; }
-            }
-            
-            document.getElementById('p1-hp').style.width = p1Hp + '%';
-            document.getElementById('p2-hp').style.width = p2Hp + '%';
-            document.getElementById('duel-feedback').innerText = msg;
-            
-            conn.send({type: 'state', p1Hp, p2Hp, msg, time: duelTimer, hitPlayer});
-            
-            if(p1Hp <= 0 || p2Hp <= 0) endDuel();
-            else setTimeout(nextDuelRound, 1500);
-        }
-
-        function endDuel() {
-            clearInterval(duelInterval);
-            let winner = "Süre Bitti - Berabere!";
-            if(p1Hp > p2Hp) winner = myName; else if(p2Hp > p1Hp) winner = oppName;
-            showWinnerAnim(winner);
-            if(isHost) conn.send({type: 'gameover', winner: winner});
-        }
-
-        function showWinnerAnim(name) {
-            document.getElementById('winner-name').innerText = name;
-            document.getElementById('winner-overlay').classList.remove('hidden');
-        }
-        function closeWinnerAnim() {
-            document.getElementById('winner-overlay').classList.add('hidden');
-            goHomeFromDuel();
-        }
-
-
-        // --- MOD 3: ARABA (KELİME ŞOFÖRÜ) ---
-        let carLane = 1; let carLives = 3; let carScore = 0; let carTime = 60;
-        let carTimerInt; let isCarGameActive = false; let correctLane = 0;
-
-        function startMode3() { switchScreen('screen-mode3'); document.getElementById('car-start-btn').style.display = "inline-block"; }
-        function goHomeCar() { switchScreen('screen-menu'); clearInterval(carTimerInt); isCarGameActive=false; }
-        function updateCarPosition() { document.getElementById('player-car').className = `car lane-${carLane}`; }
-        function updateCarHUD() {
-            document.getElementById('car-lives-display').innerText = "Can: " + "❤️".repeat(carLives);
-            document.getElementById('car-score-display').innerText = "Skor: " + carScore;
-            document.getElementById('car-timer-display').innerText = "Süre: " + carTime + "s";
-        }
-
-        // Araba Modu Klavye Kontrolü (Ayrıca yukarıdaki HTML mobil butonlarla da kontrol edilir)
-        document.addEventListener('keydown', (e) => {
-            if(activeScreen === 'screen-mode3' && isCarGameActive) {
-                if((e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') && carLane > 0) carLane--;
-                if((e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') && carLane < 2) carLane++;
-                updateCarPosition();
+        document.addEventListener('keydown', (e)=>{
+            if(activeScreen==='screen-car' && isCarActive) {
+                if(e.key==='ArrowLeft' || e.key.toLowerCase()==='a') moveCar(-1);
+                if(e.key==='ArrowRight' || e.key.toLowerCase()==='d') moveCar(1);
             }
         });
 
         function startCarGame() {
-            carLane = 1; updateCarPosition(); carLives = 3; carScore = 0;
-            carTime = parseInt(document.getElementById('car-time-select').value);
-            document.getElementById('car-start-btn').style.display = "none";
-            isCarGameActive = true; updateCarHUD();
+            carLane=1; moveCar(0); carLives=3; carScore=0; carTime=60;
+            document.getElementById('player-car').innerText = getEquippedIcon(); // Mağazadan seçilen aracı koy
+            isCarActive=true; updateCarHUD();
             
-            carTimerInt = setInterval(() => {
+            carInt = setInterval(()=>{
                 carTime--; updateCarHUD();
-                if(carTime <= 0) endCarGame("Süre Doldu! 🏁 Skorun: " + carScore);
-            }, 1000);
-            spawnObstacles();
+                if(carTime<=0) endCarGame();
+            },1000);
+            spawnObs();
         }
 
-        function spawnObstacles() {
-            if(!isCarGameActive) return;
-            const road = document.getElementById('road');
-            document.querySelectorAll('.obstacle').forEach(el => el.remove());
+        function updateCarHUD() {
+            document.getElementById('car-lives-display').innerText = "❤️".repeat(carLives);
+            document.getElementById('car-score-display').innerText = `Skor: ${carScore}`;
+            document.getElementById('car-timer-display').innerText = `Süre: ${carTime}s`;
+        }
 
-            const targetWord = wordList[getRandomInt(wordList.length)];
-            document.getElementById('car-target-word').innerText = `Yolcu istiyor: ${targetWord.target.toUpperCase()}`;
-            document.getElementById('car-target-word').style.color = "yellow";
-
-            correctLane = getRandomInt(3);
-            let options = [];
-            let wrongOptions = wordList.filter(w => w.native !== targetWord.native);
+        function spawnObs() {
+            if(!isCarActive) return;
+            document.querySelectorAll('.obstacle').forEach(e=>e.remove());
+            const target = getRandom(activeWords);
+            document.getElementById('car-target-word').innerText = `Yolcu Arıyor: ${target.target.toUpperCase()}`;
+            correctLane = Math.floor(Math.random()*3);
             
             for(let i=0; i<3; i++) {
-                if(i === correctLane) options.push(targetWord.native);
-                else options.push(wrongOptions[getRandomInt(wrongOptions.length)].native);
-            }
-
-            for(let i=0; i<3; i++) {
+                let txt = i===correctLane ? target.native : getRandom(activeWords).native;
                 let obs = document.createElement('div');
-                obs.className = `obstacle lane-${i}`;
-                obs.innerText = options[i];
-                road.appendChild(obs);
-
-                obs.animate([ { top: '-60px' }, { top: '350px' } ], { duration: 2500, easing: 'linear', fill: 'forwards' })
-                .onfinish = () => { if(i === 0) checkCarCollision(); };
+                obs.className = `obstacle lane-${i}`; obs.innerText = txt;
+                document.getElementById('road').appendChild(obs);
+                obs.animate([{top:'-60px'},{top:'350px'}], {duration: 2500, fill:'forwards'}).onfinish = () => { if(i===0) checkCarColl(); };
             }
         }
 
-        function checkCarCollision() {
-            if(!isCarGameActive) return;
-            if(carLane === correctLane) {
-                carScore += 10;
-                document.getElementById('car-target-word').innerText = "✅ Doğru Şerit!";
-                document.getElementById('car-target-word').style.color = "var(--success)";
-            } else {
-                carLives--;
-                document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!";
-                document.getElementById('car-target-word').style.color = "var(--danger)";
-            }
+        function checkCarColl() {
+            if(!isCarActive) return;
+            if(carLane === correctLane) { carScore+=10; document.getElementById('car-target-word').innerText = "✅ +10 Altın!"; }
+            else { carLives--; document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!"; }
             updateCarHUD();
-            if(carLives <= 0) endCarGame("Oyun Bitti! 💥 Skorun: " + carScore);
-            else setTimeout(spawnObstacles, 800);
+            if(carLives<=0) endCarGame(); else setTimeout(spawnObs, 800);
         }
 
-        function endCarGame(msg) {
-            isCarGameActive = false; clearInterval(carTimerInt);
-            document.getElementById('car-target-word').innerText = msg;
-            document.getElementById('car-target-word').style.color = "white";
-            document.getElementById('car-start-btn').innerText = "Tekrar Oyna";
-            document.getElementById('car-start-btn').style.display = "inline-block";
+        function endCarGame() {
+            isCarActive=false; clearInterval(carInt);
+            alert(`Oyun Bitti! Skorun: ${carScore}. \n${carScore} Altın Kazandın! 💰`);
+            addCoins(carScore);
+            goHomeCar();
         }
     </script>
 </body>
