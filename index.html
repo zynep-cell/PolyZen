@@ -61,7 +61,7 @@
         .hp-bar-container { width: 100%; height: 20px; background: #555; border-radius: 10px; overflow: hidden; margin-bottom: 5px;}
         .hp-bar { width: 100%; height: 100%; background: var(--success); transition: 0.3s; }
         .duel-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; z-index:10;}
-        .duel-opt { background: #444; padding: 15px 5px; border-radius: 8px; flex: 1; font-weight: bold; font-size: 18px; cursor: pointer; border: 2px solid #666;}
+        .duel-opt { background: #444; padding: 15px 5px; border-radius: 8px; flex: 1; font-weight: bold; font-size: 18px; cursor: pointer; border: 2px solid #666; user-select: none;}
         
         /* ARABA YOLU */
         .road-container { position: relative; width: 100%; height: 350px; background: #333; border-left: 5px dashed white; border-right: 5px dashed white; overflow: hidden;}
@@ -119,14 +119,11 @@ Variable - Değişken</textarea>
     <!-- AVATAR MODİFİYE EKRANI -->
     <div id="screen-avatar" class="container hidden">
         <div class="top-bar"><span>Avatar Düzenleyici</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
-        <div class="avatar-container" id="preview-avatar">
-            <!-- JS ile doldurulacak -->
-        </div>
+        <div class="avatar-container" id="preview-avatar"></div>
         <div class="customizer-grid">
             <div>
                 <label>Şapka/Saç:</label>
                 <select id="av-hat" onchange="updateAvatarPreview()">
-                    <!-- İSKELET: BURAYA YENİ EMOJİLER EKLERSİN -->
                     <option value="🤠">Kovboy 🤠</option>
                     <option value="🎩">Sihirbaz 🎩</option>
                     <option value="🧢">Şapka 🧢</option>
@@ -149,11 +146,11 @@ Variable - Değişken</textarea>
                 </select>
             </div>
             <div>
-                <label>Üst Kıyafet Rengi:</label>
+                <label>Üst Kıyafet:</label>
                 <input type="color" id="av-body-color" value="#0f3460" onchange="updateAvatarPreview()">
             </div>
             <div>
-                <label>Alt Kıyafet Rengi:</label>
+                <label>Alt Kıyafet:</label>
                 <input type="color" id="av-legs-color" value="#e94560" onchange="updateAvatarPreview()">
             </div>
         </div>
@@ -164,10 +161,8 @@ Variable - Değişken</textarea>
     <div id="screen-store" class="container hidden">
         <div class="top-bar"><span>Garaj & Dükkan</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
         <div class="coin-display" id="store-coins">💰 Bakiye: 0 Altın</div>
-        <p style="text-align:center; font-size:12px;">Doğru cevaplar sana altın kazandırır!</p>
         
         <div class="flex-row" id="store-grid">
-            <!-- İSKELET: BURAYA YENİ ARAÇLAR EKLERSİN -->
             <!-- JS ile dinamik çizilecek -->
         </div>
     </div>
@@ -177,7 +172,7 @@ Variable - Değişken</textarea>
         <div class="top-bar"><span>Karışık Harfler</span><button onclick="switchScreen('screen-menu')">🏠 Çıkış</button></div>
         <h2 id="scramble-word" style="font-size: 40px; letter-spacing: 5px; color: var(--accent);"></h2>
         <input type="text" id="scramble-input" placeholder="Doğrusu nedir?" onkeypress="if(event.key==='Enter') checkScramble()">
-        <p id="scramble-feedback" style="text-align:center; height:20px;"></p>
+        <p id="scramble-feedback" style="text-align:center; height:20px; font-weight:bold;"></p>
         <div style="text-align:center;"><button onclick="checkScramble()">Kontrol Et</button></div>
     </div>
 
@@ -187,7 +182,12 @@ Variable - Değişken</textarea>
         
         <div id="duel-lobby">
             <input type="text" id="player-name" placeholder="Oyuncu Adın (Örn: Zaze)" maxlength="12">
+            
+            <!-- YENİ: BOTA KARŞI OYNA BUTONU -->
+            <button onclick="startBotDuel()" style="width:100%; background:#9c27b0; margin-bottom:15px; font-size:18px;">🤖 Yapay Zekaya (Bot) Karşı Oyna</button>
+            
             <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; margin-bottom:10px; text-align:center;">
+                <p style="margin-top:0; font-size:14px; color:#aaa;">veya Arkadaşınla Oyna</p>
                 <button onclick="hostRoom()">Oda Kur</button>
                 <p id="lobby-status" style="color:var(--success);"></p>
             </div>
@@ -211,7 +211,7 @@ Variable - Değişken</textarea>
                 
                 <div class="player" id="p1">
                     <div class="hp-bar-container"><div id="p1-hp" class="hp-bar"></div></div>
-                    <div id="p1-avatar-render"></div> <!-- Avatar buraya gelecek -->
+                    <div id="p1-avatar-render"></div>
                     <div style="font-weight:bold;" id="p1-name-display">Sen</div>
                 </div>
                 <div class="player" id="p2">
@@ -240,7 +240,6 @@ Variable - Değişken</textarea>
             <div style="position:absolute; width:100%; height:100%; display:flex; justify-content:space-evenly; pointer-events:none;">
                 <div class="lane-marker"></div><div class="lane-marker"></div>
             </div>
-            <!-- Seçili araç emojisi buraya yansıyacak -->
             <div id="player-car" class="car lane-1">🚗</div>
         </div>
         
@@ -251,18 +250,13 @@ Variable - Değişken</textarea>
     </div>
 
     <script>
-        // --- VERİTABANI (LocalStorage) & DEĞİŞKENLER ---
-        let allWords = {}; // { "İspanyolca": [{target, native}], "Karışık": [] }
-        let activeWords = [];
-        let activeScreen = 'screen-menu';
+        // --- VERİTABANI & DEĞİŞKENLER ---
+        let allWords = {}; let activeWords = []; let activeScreen = 'screen-menu';
         
-        // Kullanıcı Verileri
         let userData = JSON.parse(localStorage.getItem('polyglotData')) || {
-            coins: 0,
-            theme: 'dark',
+            coins: 0, theme: 'dark',
             avatar: { hat: '🤠', face: '😎', body: '#0f3460', legs: '#e94560' },
-            inventory: ['car'],
-            equippedVehicle: 'car'
+            inventory: ['car'], equippedVehicle: 'car'
         };
 
         const storeItems = [
@@ -271,15 +265,12 @@ Variable - Değişken</textarea>
             { id: 'motorcycle', icon: '🏍️', name: 'Motor', price: 250 },
             { id: 'bus', icon: '🚌', name: 'Otobüs', price: 500 },
             { id: 'sportscar', icon: '🏎️', name: 'Spor Araba', price: 1000 },
-            { id: 'rocket', icon: '🚀', name: 'Roket', price: 2500 } // Sürpriz :)
+            { id: 'rocket', icon: '🚀', name: 'Uzay Roketi', price: 2500 }
         ];
 
-        // --- İLK YÜKLEME (INIT) ---
         window.onload = () => {
             if(userData.theme === 'light') document.body.classList.add('light-mode');
-            updateCoinsUI();
-            loadAvatarToUI();
-            renderStore();
+            updateCoinsUI(); loadAvatarToUI(); renderStore();
         };
 
         function saveData() { localStorage.setItem('polyglotData', JSON.stringify(userData)); updateCoinsUI(); }
@@ -300,15 +291,12 @@ Variable - Değişken</textarea>
             if(id === 'screen-store') renderStore();
         }
 
-        // --- AVATAR OLUŞTURUCU ---
+        // --- AVATAR & DÜKKAN ---
         function generateAvatarHTML(avData) {
-            return `
-            <div class="avatar-container" style="margin:0; transform:scale(0.8);">
-                <div class="avatar-hat">${avData.hat}</div>
-                <div class="avatar-face">${avData.face}</div>
+            return `<div class="avatar-container" style="margin:0; transform:scale(0.8);">
+                <div class="avatar-hat">${avData.hat}</div><div class="avatar-face">${avData.face}</div>
                 <div class="avatar-body" style="background-color: ${avData.body};"></div>
-                <div class="avatar-legs" style="background-color: ${avData.legs};"></div>
-            </div>`;
+                <div class="avatar-legs" style="background-color: ${avData.legs};"></div></div>`;
         }
         function loadAvatarToUI() {
             document.getElementById('av-hat').value = userData.avatar.hat;
@@ -318,64 +306,38 @@ Variable - Değişken</textarea>
             updateAvatarPreview();
         }
         function updateAvatarPreview() {
-            const av = {
-                hat: document.getElementById('av-hat').value,
-                face: document.getElementById('av-face').value,
-                body: document.getElementById('av-body-color').value,
-                legs: document.getElementById('av-legs-color').value
-            };
+            const av = { hat: document.getElementById('av-hat').value, face: document.getElementById('av-face').value, body: document.getElementById('av-body-color').value, legs: document.getElementById('av-legs-color').value };
             document.getElementById('preview-avatar').innerHTML = generateAvatarHTML(av);
         }
         function saveAvatar() {
-            userData.avatar = {
-                hat: document.getElementById('av-hat').value, face: document.getElementById('av-face').value,
-                body: document.getElementById('av-body-color').value, legs: document.getElementById('av-legs-color').value
-            };
-            saveData();
-            switchScreen('screen-menu');
+            userData.avatar = { hat: document.getElementById('av-hat').value, face: document.getElementById('av-face').value, body: document.getElementById('av-body-color').value, legs: document.getElementById('av-legs-color').value };
+            saveData(); switchScreen('screen-menu');
         }
 
-        // --- DÜKKAN MOTORU ---
         function renderStore() {
-            const grid = document.getElementById('store-grid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('store-grid'); grid.innerHTML = '';
             storeItems.forEach(item => {
                 const isOwned = userData.inventory.includes(item.id);
                 const isEquipped = userData.equippedVehicle === item.id;
-                
                 let btnHTML = isEquipped ? `<button disabled style="background:#555">Kullanılıyor</button>` :
                               isOwned ? `<button onclick="equipItem('${item.id}')" style="background:var(--success)">Seç</button>` :
                               `<button onclick="buyItem('${item.id}', ${item.price})">Satın Al (${item.price} 💰)</button>`;
-                
-                grid.innerHTML += `
-                <div class="store-item ${isOwned ? 'owned' : ''} ${isEquipped ? 'equipped' : ''}">
-                    <div style="font-size:40px;">${item.icon}</div>
-                    <div style="font-weight:bold; margin:10px 0;">${item.name}</div>
-                    ${btnHTML}
-                </div>`;
+                grid.innerHTML += `<div class="store-item ${isOwned ? 'owned' : ''} ${isEquipped ? 'equipped' : ''}">
+                    <div style="font-size:40px;">${item.icon}</div><div style="font-weight:bold; margin:10px 0;">${item.name}</div>${btnHTML}</div>`;
             });
         }
-        function buyItem(id, price) {
-            if(userData.coins >= price) {
-                userData.coins -= price;
-                userData.inventory.push(id);
-                saveData(); renderStore();
-            } else alert("Yeterli altının yok. Oyun oynayarak kazan!");
-        }
+        function buyItem(id, price) { if(userData.coins >= price) { userData.coins -= price; userData.inventory.push(id); saveData(); renderStore(); } else alert("Yeterli altının yok!"); }
         function equipItem(id) { userData.equippedVehicle = id; saveData(); renderStore(); }
         function getEquippedIcon() { return storeItems.find(i => i.id === userData.equippedVehicle).icon; }
 
-        // --- KELİME AYRIŞTIRICI ---
+        // --- KELİME OKUYUCU ---
         function saveWords() {
-            const text = document.getElementById('wordInput').value;
-            const lines = text.split('\n');
+            const lines = document.getElementById('wordInput').value.split('\n');
             allWords = {}; let currentCat = "Genel"; let totalCount = 0;
-
             lines.forEach(line => {
                 let txt = line.trim();
-                if(txt.startsWith('[') && txt.endsWith(']')) {
-                    currentCat = txt.slice(1, -1);
-                } else if(txt.includes('-')) {
+                if(txt.startsWith('[') && txt.endsWith(']')) currentCat = txt.slice(1, -1);
+                else if(txt.includes('-')) {
                     const [t, n] = txt.split('-');
                     if(t.trim() && n.trim()) {
                         if(!allWords[currentCat]) allWords[currentCat] = [];
@@ -384,57 +346,66 @@ Variable - Değişken</textarea>
                     }
                 }
             });
-
             if(totalCount < 5) return alert("En az 5 kelime girmelisin!");
-            
-            // Tüm kelimeleri içeren Karışık kategorisi
             allWords["Tümü (Karışık)"] = [];
-            for(let cat in allWords) {
-                if(cat !== "Tümü (Karışık)") allWords["Tümü (Karışık)"] = allWords["Tümü (Karışık)"].concat(allWords[cat]);
-            }
+            for(let cat in allWords) if(cat !== "Tümü (Karışık)") allWords["Tümü (Karışık)"] = allWords["Tümü (Karışık)"].concat(allWords[cat]);
 
-            const select = document.getElementById('cat-select');
-            select.innerHTML = '';
+            const select = document.getElementById('cat-select'); select.innerHTML = '';
             for(let cat in allWords) select.innerHTML += `<option value="${cat}">${cat} (${allWords[cat].length} kelime)</option>`;
-            
             document.getElementById('category-selector').classList.remove('hidden');
         }
 
         function startMode(mode) {
-            const selectedCat = document.getElementById('cat-select').value;
-            activeWords = allWords[selectedCat];
+            activeWords = allWords[document.getElementById('cat-select').value];
             if(mode === 'scramble') { switchScreen('screen-scramble'); nextScramble(); }
             if(mode === 'duel') { switchScreen('screen-duel'); document.getElementById('duel-lobby').classList.remove('hidden'); document.getElementById('duel-game').classList.add('hidden'); }
             if(mode === 'car') { switchScreen('screen-car'); startCarGame(); }
         }
 
-        // ==========================================
-        // OYUN FONKSİYONLARI BURADAN İTİBAREN BAŞLAR
-        // ==========================================
         function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
         function shuffle(str) { return str.split('').sort(()=>0.5-Math.random()).join(''); }
 
-        // MOD 1: SCRAMBLE
+        // MOD 1: KARIŞIK
         let currScramble = null;
         function nextScramble() {
             currScramble = getRandom(activeWords);
             document.getElementById('scramble-word').innerText = shuffle(currScramble.target).toUpperCase();
             document.getElementById('scramble-input').value = '';
-            document.getElementById('scramble-feedback').innerText = `Anlamı: ${currScramble.native}`;
+            document.getElementById('scramble-feedback').innerText = `İpucu: ${currScramble.native}`;
+            document.getElementById('scramble-feedback').style.color = "var(--text)";
         }
         function checkScramble() {
             if(document.getElementById('scramble-input').value.trim().toLowerCase() === currScramble.target.toLowerCase()) {
-                document.getElementById('scramble-feedback').innerText = "+5 Altın! 💰 ✅";
+                document.getElementById('scramble-feedback').innerText = "✅ Doğru! +5 Altın 💰";
+                document.getElementById('scramble-feedback').style.color = "var(--success)";
                 addCoins(5);
-                setTimeout(nextScramble, 800);
-            } else document.getElementById('scramble-feedback').innerText = "❌ Yanlış!";
+                setTimeout(nextScramble, 1000);
+            } else {
+                document.getElementById('scramble-feedback').innerText = "❌ Yanlış, Tekrar Dene!";
+                document.getElementById('scramble-feedback').style.color = "var(--danger)";
+            }
         }
 
-        // MOD 2: MULTIPLAYER DÜELLO
-        let peer, conn, isHost = false, myName="", oppName="", oppAvatar={};
+        // MOD 2: KOVBOY DÜELLOSU & BOT
+        let peer, conn, isHost = false, isBotMode = false, botTimer = null;
+        let myName="", oppName="", oppAvatar={};
         let p1Hp=100, p2Hp=100, duelActive=false, duelSide=0, duelTimer=40, duelInt;
+        let isDuelOver = false; // BÜYÜK BUG FİXİ BURADA!
+
+        function startBotDuel() {
+            isBotMode = true; isHost = true; isDuelOver = false;
+            myName = document.getElementById('player-name').value || "Sen";
+            oppName = "Kovboy Bot 🤖";
+            oppAvatar = { hat: '🎩', face: '🤖', body: '#333333', legs: '#111111' };
+            
+            document.getElementById('duel-lobby').classList.add('hidden');
+            document.getElementById('duel-game').classList.remove('hidden');
+            renderDuelAvatars();
+            startDuelInit();
+        }
 
         function hostRoom() {
+            isBotMode = false; isDuelOver = false;
             myName = document.getElementById('player-name').value || "Oyuncu1";
             const code = Math.random().toString(36).substring(2,6).toUpperCase();
             document.getElementById('lobby-status').innerText = "Bağlanıyor...";
@@ -443,12 +414,14 @@ Variable - Değişken</textarea>
             peer.on('connection', (c) => { isHost = true; conn = c; setupConn(); });
         }
         function joinRoom() {
+            isBotMode = false; isDuelOver = false;
             myName = document.getElementById('player-name').value || "Oyuncu2";
             const code = document.getElementById('join-code').value.toUpperCase();
             document.getElementById('join-status').innerText = "Bağlanıyor...";
             peer = new Peer();
             peer.on('open', () => { isHost=false; conn = peer.connect('polyglot-'+code); setupConn(); });
         }
+        
         function setupConn() {
             conn.on('open', () => {
                 document.getElementById('duel-lobby').classList.add('hidden');
@@ -462,6 +435,7 @@ Variable - Değişken</textarea>
                 if(d.type === 'round') { 
                     document.getElementById('duel-target').innerText = d.target;
                     document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2;
+                    document.getElementById('duel-target').style.color = "white";
                     duelSide = d.side; duelActive = true;
                 }
                 if(d.type === 'hit' && isHost) processDuelHit(d.side, 2);
@@ -469,10 +443,15 @@ Variable - Değişken</textarea>
                     p1Hp = d.p1; p2Hp = d.p2; updateDuelHP();
                     if(d.msg) document.getElementById('duel-target').innerText = d.msg;
                 }
-                if(d.type === 'gameover') { 
-                    alert(`${d.winner} Kazandı!`); 
-                    if(d.winner === myName) { alert("+50 Altın Kazandın!"); addCoins(50); }
-                    goHomeFromDuel(); 
+                if(d.type === 'gameover') {
+                    if(isDuelOver) return; // ÇİFT ÖDÜL BUG'INI ENGELLER
+                    isDuelOver = true;
+                    clearInterval(duelInt);
+                    let endMsg = `${d.winner} Kazandı!`;
+                    if(d.winner === myName) { endMsg += " +50 💰"; addCoins(50); }
+                    document.getElementById('duel-target').innerText = endMsg;
+                    document.getElementById('duel-target').style.color = "gold";
+                    setTimeout(goHomeFromDuel, 3000); 
                 }
             });
         }
@@ -483,41 +462,91 @@ Variable - Değişken</textarea>
             document.getElementById('p2-avatar-render').innerHTML = generateAvatarHTML(isHost ? oppAvatar : userData.avatar);
         }
         function startDuelInit() {
-            p1Hp = 100; p2Hp = 100; updateDuelHP(); duelTimer=40;
-            duelInt = setInterval(()=> { duelTimer--; document.getElementById('duel-timer').innerText = duelTimer; if(duelTimer<=0) endDuel(); }, 1000);
+            p1Hp = 100; p2Hp = 100; updateDuelHP(); duelTimer = 40; isDuelOver = false;
+            document.getElementById('duel-timer').innerText = duelTimer;
+            
+            clearInterval(duelInt);
+            duelInt = setInterval(()=> { 
+                duelTimer--; document.getElementById('duel-timer').innerText = duelTimer; 
+                if(duelTimer<=0) endDuel(); 
+            }, 1000);
             nextDuelRound();
         }
         function nextDuelRound() {
-            if(!isHost || p1Hp<=0 || p2Hp<=0 || duelTimer<=0) return;
+            if(!isHost || p1Hp<=0 || p2Hp<=0 || duelTimer<=0 || isDuelOver) return;
             const w = getRandom(activeWords); duelSide = Math.random()>0.5?1:2;
             const wrong = shuffle(w.target);
             const d = { type:'round', target: w.native.toUpperCase(), opt1: duelSide===1?w.target:wrong, opt2: duelSide===1?wrong:w.target, side: duelSide };
-            conn.send(d); document.getElementById('duel-target').innerText = d.target;
+            
+            document.getElementById('duel-target').innerText = d.target;
+            document.getElementById('duel-target').style.color = "white";
             document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2;
             duelActive = true;
+            
+            if(!isBotMode) conn.send(d);
+            
+            // BOTUN DÜŞÜNME VE ATEŞ ETME SÜRECİ
+            if(isBotMode) {
+                let botDelay = Math.floor(Math.random() * 1500) + 700; // 0.7sn ile 2.2sn arası düşünür
+                botTimer = setTimeout(() => {
+                    if(!duelActive) return; // Eğer sen erken sıktıysan bot sılamaz
+                    duelActive = false;
+                    let botPickRight = Math.random() < 0.75; // %75 ihtimalle doğru cevabı seçer
+                    let botSidePick = botPickRight ? duelSide : (duelSide === 1 ? 2 : 1);
+                    processDuelHit(botSidePick, 2); // Bot (Oyuncu 2) Ateş Eder
+                }, botDelay);
+            }
         }
+        
         function handleDuelInput(s) {
-            if(!duelActive) return; duelActive = false;
+            if(!duelActive) return; 
+            duelActive = false;
+            if(isBotMode) clearTimeout(botTimer); // Bota fırsat vermedin
             if(isHost) processDuelHit(s, 1); else conn.send({type:'hit', side:s});
         }
+        
         function processDuelHit(side, pNum) {
+            if(isDuelOver) return;
+            let msg = pNum===1 ? "Oyuncu 1 Ateş Etti!" : "Oyuncu 2 Ateş Etti!";
             if(pNum===1) { if(side===duelSide) p2Hp-=20; else p1Hp-=20; }
             else { if(side===duelSide) p1Hp-=20; else p2Hp-=20; }
-            conn.send({type:'state', p1:p1Hp, p2:p2Hp, msg: pNum===1?"Oyuncu 1 Ateş Etti!":"Oyuncu 2 Ateş Etti!"});
+            
+            if(!isBotMode) conn.send({type:'state', p1:p1Hp, p2:p2Hp, msg: msg});
+            document.getElementById('duel-target').innerText = msg;
+            
             updateDuelHP();
             if(p1Hp<=0 || p2Hp<=0) endDuel(); else setTimeout(nextDuelRound, 1200);
         }
         function updateDuelHP() { document.getElementById('p1-hp').style.width=p1Hp+'%'; document.getElementById('p2-hp').style.width=p2Hp+'%'; }
+        
         function endDuel() {
+            if(isDuelOver) return; // ÇİFT ÖDÜL BUG'INI ENGELLER
+            isDuelOver = true;
             clearInterval(duelInt);
-            let winner = "Berabere"; if(p1Hp>p2Hp) winner=isHost?myName:oppName; else if(p2Hp>p1Hp) winner=isHost?oppName:myName;
-            if(isHost) conn.send({type:'gameover', winner});
-            if(winner === myName && isHost) { alert("+50 Altın Kazandın!"); addCoins(50); }
-            setTimeout(goHomeFromDuel, 1000);
-        }
-        function goHomeFromDuel() { if(peer) peer.destroy(); clearInterval(duelInt); switchScreen('screen-menu'); }
+            if(isBotMode) clearTimeout(botTimer);
 
-        // MOD 3: ARABA (MODİFİYE DESTEKLİ)
+            let winner = "Berabere"; 
+            if(p1Hp>p2Hp) winner = isHost?myName:oppName; 
+            else if(p2Hp>p1Hp) winner = isHost?oppName:myName;
+            
+            let endMsg = `${winner} Kazandı!`;
+            if(winner === myName && isHost) { endMsg += " +50 💰"; addCoins(50); }
+            
+            document.getElementById('duel-target').innerText = endMsg;
+            document.getElementById('duel-target').style.color = "gold";
+
+            if(isHost && !isBotMode) conn.send({type:'gameover', winner});
+            setTimeout(goHomeFromDuel, 3000); // 3 Saniye sonra lobiye atar (Alert yok!)
+        }
+        
+        function goHomeFromDuel() { 
+            if(peer) peer.destroy(); 
+            clearInterval(duelInt); 
+            if(botTimer) clearTimeout(botTimer);
+            switchScreen('screen-menu'); 
+        }
+
+        // MOD 3: ARABA
         let carLane=1, carLives=3, carScore=0, carTime=60, carInt, isCarActive=false, correctLane=0;
         function goHomeCar() { clearInterval(carInt); isCarActive=false; switchScreen('screen-menu'); }
         
@@ -533,11 +562,15 @@ Variable - Değişken</textarea>
                 if(e.key==='ArrowLeft' || e.key.toLowerCase()==='a') moveCar(-1);
                 if(e.key==='ArrowRight' || e.key.toLowerCase()==='d') moveCar(1);
             }
+            if(activeScreen==='screen-duel' && duelActive) {
+                if(e.key==='ArrowLeft' || e.key.toLowerCase()==='a') handleDuelInput(1);
+                if(e.key==='ArrowRight' || e.key.toLowerCase()==='d') handleDuelInput(2);
+            }
         });
 
         function startCarGame() {
             carLane=1; moveCar(0); carLives=3; carScore=0; carTime=60;
-            document.getElementById('player-car').innerText = getEquippedIcon(); // Mağazadan seçilen aracı koy
+            document.getElementById('player-car').innerText = getEquippedIcon();
             isCarActive=true; updateCarHUD();
             
             carInt = setInterval(()=>{
@@ -571,17 +604,24 @@ Variable - Değişken</textarea>
 
         function checkCarColl() {
             if(!isCarActive) return;
-            if(carLane === correctLane) { carScore+=10; document.getElementById('car-target-word').innerText = "✅ +10 Altın!"; }
-            else { carLives--; document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!"; }
+            if(carLane === correctLane) { 
+                carScore+=10; 
+                document.getElementById('car-target-word').innerText = "✅ +10 Altın!";
+            } else { 
+                carLives--; 
+                document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!"; 
+            }
             updateCarHUD();
             if(carLives<=0) endCarGame(); else setTimeout(spawnObs, 800);
         }
 
         function endCarGame() {
             isCarActive=false; clearInterval(carInt);
-            alert(`Oyun Bitti! Skorun: ${carScore}. \n${carScore} Altın Kazandın! 💰`);
+            // Sadece bir kere oyun sonu ekranı (alert yerine ekrana yazdırma)
+            document.getElementById('car-target-word').innerText = `Oyun Bitti! +${carScore} Altın Kazandın!`;
+            document.getElementById('car-target-word').style.color = "gold";
             addCoins(carScore);
-            goHomeCar();
+            setTimeout(goHomeCar, 2500); // 2.5 sn sonra menüye döner
         }
     </script>
 </body>
