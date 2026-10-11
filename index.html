@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polyzen - Ultimate Learning Hub</title>
+    <title>⛩️ Polyzen - Ultimate Arcade Hub</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.1/peerjs.min.js"></script>
     <style>
+        /* RETRO ARCADE - 8-BIT/16-BIT NES & SEGA GÖRSEL GİYDİRMESİ */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Segoe+UI:wght@400;700&display=swap');
+
         :root {
-            --bg-color: #1a1a2e; --panel-bg: #16213e; --primary: #0f3460;
-            --accent: #e94560; --text: #ffffff; --success: #4caf50; --danger: #f44336;
-            --shop-bg: #222;
+            /* Koyu Tema (Varsayılan Arcade Modu) */
+            --bg-color: #0b0b16; 
+            --panel-bg: #121225; 
+            --primary: #1e1e3f;
+            --accent: #ff2a5f; 
+            --text: #ffffff; 
+            --success: #00ff66; 
+            --danger: #ff2a2a;
+            --shop-bg: #1a1a35;
+            --border-color: #ffd700; /* Altın Sarısı Retro Sınırlar */
         }
         body.light-mode {
-            --bg-color: #f4f4f9; --panel-bg: #ffffff; --primary: #3498db;
-            --accent: #e74c3c; --text: #333333; --shop-bg: #f0f0f0;
+            /* Açık Atari Modu */
+            --bg-color: #e0e0f0; 
+            --panel-bg: #ffffff; 
+            --primary: #3498db;
+            --accent: #e74c3c; 
+            --text: #1a1a2e; 
+            --shop-bg: #f0f0f8;
+            --border-color: #e67e22;
         }
 
         body {
@@ -21,103 +37,392 @@
             background-color: var(--bg-color); color: var(--text);
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
             overflow-x: hidden; touch-action: manipulation; transition: 0.3s;
+            background-image: radial-gradient(rgba(18, 18, 37, 0.4) 15%, transparent 15%), radial-gradient(rgba(18, 18, 37, 0.4) 15%, transparent 15%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
         }
-        h1, h2, h3 { text-align: center; margin-top: 15px; }
-        .container { width: 95%; max-width: 800px; background: var(--panel-bg); padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); box-sizing: border-box; transition: 0.3s;}
+
+        /* Başlıklar - Atari Tarzı Gölgeli */
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            color: var(--border-color);
+            text-shadow: 4px 4px 0px var(--accent), -2px -2px 0px #000;
+            margin-top: 25px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        h2, h3 { 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 2px 2px 0px var(--primary);
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        p { font-size: 14px; line-height: 1.5; color: #b0b0d0; text-align: center; margin-bottom: 15px;}
+
+        /* Arcade Kabinleri Tarzı Kapsayıcılar */
+        .container { 
+            width: 95%; 
+            max-width: 800px; 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 4px; /* Keskin köşeler atari havasını destekler */
+            border: 6px double var(--border-color);
+            margin-top: 20px; 
+            box-shadow: 0 0 0 6px #000, 0 15px 0px rgba(0,0,0,0.4); 
+            box-sizing: border-box; 
+            transition: 0.3s;
+            position: relative;
+        }
         .hidden { display: none !important; }
         
+        /* Kalın, Gölgeli 3D Retro Butonlar */
         button {
-            background: var(--accent); color: white; border: none; padding: 12px 20px;
-            font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; margin: 5px; font-weight:bold;
+            background: var(--accent); 
+            color: white; 
+            border: 4px solid #000; 
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            border-radius: 4px; 
+            cursor: pointer; 
+            transition: 0.1s; 
+            margin: 8px; 
+            font-weight: bold;
+            box-shadow: 0 6px 0 #000, 0 6px 0px var(--border-color);
+            text-shadow: 1px 1px 0px #000;
+            position: relative;
+            top: 0;
         }
-        button:hover { filter: brightness(1.2); transform: scale(1.02); }
-        button:active { transform: scale(0.95); }
+        button:hover { 
+            filter: brightness(1.1); 
+            top: 2px;
+            box-shadow: 0 4px 0 #000, 0 4px 0px var(--border-color);
+        }
+        button:active { 
+            top: 6px;
+            box-shadow: 0 0px 0 #000;
+        }
+        
+        /* Giriş Elemanları */
         input, textarea, select {
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #555;
-            background: rgba(128,128,128,0.1); color: var(--text); font-size: 16px; box-sizing: border-box;
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            border-radius: 4px; 
+            border: 4px solid #000;
+            background: #101025; 
+            color: var(--success); 
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            font-size: 16px; 
+            box-sizing: border-box;
+            box-shadow: inset 0 4px 0 rgba(0,0,0,0.5), 0 3px 0 rgba(255,255,255,0.1);
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--border-color);
         }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;}
-        .mode-btn { padding: 15px; font-size: 16px; flex: 1; min-width: 150px; background: var(--primary); }
-        .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;}
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            border-bottom: 6px double var(--accent); 
+            padding-bottom: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: var(--border-color);
+        }
+        .top-bar button { padding: 6px 12px; font-size: 8px; box-shadow: 0 3px 0 #000; margin: 0;}
+        .top-bar button:active { top: 3px; box-shadow: 0 0px 0 #000;}
 
-        /* AVATAR & DÜKKAN */
-        .avatar-container { display: flex; flex-direction: column; align-items: center; transform: scale(1.2); margin: 20px 0;}
-        .avatar-hat { font-size: 30px; margin-bottom: -15px; z-index: 3; position: relative;}
-        .avatar-face { font-size: 40px; z-index: 2; position: relative;}
-        .avatar-body { width: 40px; height: 35px; border-radius: 10px 10px 0 0; margin-top: -5px; z-index: 1;}
-        .avatar-legs { width: 40px; height: 25px; border-radius: 0 0 10px 10px;}
-        .customizer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; background: var(--shop-bg); padding: 15px; border-radius: 8px;}
-        .store-item { background: var(--shop-bg); padding: 15px; border-radius: 8px; text-align: center; border: 2px solid #555; display:flex; flex-direction:column; align-items:center; justify-content:space-between;}
+        .mode-btn { 
+            padding: 22px; 
+            font-size: 10px; 
+            flex: 1; 
+            min-width: 160px; 
+            background: var(--primary); 
+            box-shadow: 0 6px 0 #000, 0 6px 0px var(--border-color);
+        }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;}
+
+        /* AVATAR & DÜKKAN (RETRO GARAJ) */
+        .avatar-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            transform: scale(1.3); 
+            margin: 25px 0;
+            filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.5));
+        }
+        .avatar-hat { font-size: 32px; margin-bottom: -15px; z-index: 3; position: relative;}
+        .avatar-face { font-size: 44px; z-index: 2; position: relative;}
+        .avatar-body { width: 44px; height: 38px; border-radius: 6px 6px 0 0; margin-top: -5px; z-index: 1; border: 3px solid #000;}
+        .avatar-legs { width: 44px; height: 26px; border-radius: 0 0 6px 6px; border: 3px solid #000; border-top: none;}
+        
+        .customizer-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            text-align: left; 
+            background: var(--shop-bg); 
+            padding: 20px; 
+            border: 4px solid #000;
+            border-radius: 4px;
+        }
+        .store-item { 
+            background: var(--shop-bg); 
+            padding: 20px; 
+            border-radius: 4px; 
+            text-align: center; 
+            border: 4px solid #000; 
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            display:flex; 
+            flex-direction:column; 
+            align-items:center; 
+            justify-content:space-between;
+        }
         .store-item.owned { border-color: var(--success); }
-        .store-item.equipped { border-color: gold; box-shadow: 0 0 10px gold; }
+        .store-item.equipped { border-color: var(--border-color); box-shadow: 0 0 15px var(--border-color), 0 5px 0 rgba(0,0,0,0.2); }
 
         /* KELİME DEFTERİ */
-        .vocab-list { max-height: 400px; overflow-y: auto; background: var(--shop-bg); padding: 10px; border-radius: 8px;}
-        .vocab-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #444;}
-        .vocab-stats { font-size: 12px; color: #aaa; }
+        .vocab-list { max-height: 350px; overflow-y: auto; background: var(--shop-bg); padding: 15px; border: 4px solid #000; border-radius: 4px;}
+        .vocab-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 2px dashed #444;}
+        .vocab-stats { font-size: 11px; color: #a0a0d0; font-family: monospace; margin-top: 4px;}
         .vocab-mastered { text-decoration: line-through; opacity: 0.5; }
 
-        /* KOVBOY DÜELLOSU & CHAT */
-        .duel-arena { display: flex; justify-content: space-between; position: relative; height: 350px; background: #2a1b1b; border-radius: 10px; padding: 20px;}
+        /* KOVBOY DÜELLOSU */
+        .duel-arena { 
+            display: flex; 
+            justify-content: space-between; 
+            position: relative; 
+            height: 350px; 
+            background: linear-gradient(#f39c12 20%, #d35400 60%, #3e2723 95%); /* Vahşi Batı Gün Batımı */
+            border-radius: 4px; 
+            padding: 20px;
+            border: 4px solid #000;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
+        }
+        /* Çöl Manzarası detayları */
+        .duel-arena::before {
+            content: "🌵         🏜️            🌵";
+            position: absolute;
+            bottom: 25%;
+            left: 0; width: 100%;
+            font-size: 30px;
+            opacity: 0.65;
+            display: flex;
+            justify-content: space-around;
+            pointer-events: none;
+        }
         .player { width: 35%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; z-index: 2; align-items: center;}
-        .hp-bar-container { width: 100%; height: 20px; background: #555; border-radius: 10px; overflow: hidden; margin-bottom: 5px;}
+        .hp-bar-container { width: 100%; height: 20px; background: #555; border: 3px solid #000; border-radius: 4px; overflow: hidden; margin-bottom: 5px; box-shadow: inset 0 3px 0 rgba(0,0,0,0.5);}
         .hp-bar { width: 100%; height: 100%; background: var(--success); transition: 0.3s; }
-        .duel-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; z-index:10;}
-        .duel-opt { background: #444; padding: 15px 5px; border-radius: 8px; flex: 1; font-weight: bold; font-size: 18px; cursor: pointer; border: 2px solid #666; user-select: none;}
         
-        /* CHATBOX YENİ */
-        .chat-container { margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #444; background: rgba(0,0,0,0.3);}
-        .chat-messages { height: 100px; overflow-y: auto; padding: 8px; font-size: 14px; text-align: left; display: flex; flex-direction: column; gap: 4px;}
-        .chat-msg { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; width: fit-content; max-width: 80%;}
-        .chat-msg.me { background: var(--primary); align-self: flex-end;}
-        .chat-input-wrapper { display: flex; border-top: 1px solid #444;}
-        .chat-input-wrapper input { flex: 1; border: none; border-radius: 0; margin: 0; padding: 8px; background: transparent; color: white;}
-        .chat-input-wrapper button { margin: 0; border-radius: 0; padding: 8px 15px; background: var(--accent);}
+        .duel-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 85%; text-align: center; z-index:10;}
+        #duel-target { 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px; 
+            background: rgba(0,0,0,0.85); 
+            border: 4px solid var(--border-color);
+            padding: 12px; 
+            border-radius: 4px; 
+            color: #ffffff; 
+            margin-bottom: 12px;
+            box-shadow: 0 5px 0 #000;
+            line-height: 1.4;
+        }
+        .duel-opt { 
+            background: #2c3e50; 
+            border: 4px solid #000;
+            color: #fff;
+            padding: 16px 8px; 
+            border-radius: 4px; 
+            flex: 1; 
+            font-weight: bold; 
+            font-size: 16px; 
+            cursor: pointer; 
+            box-shadow: 0 5px 0 #000;
+            text-align: center;
+        }
+        .duel-opt:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #000;
+        }
+        
+        /* CHATBOX YENİ NESİL ARCADE */
+        .chat-container { margin-top: 15px; border-radius: 4px; overflow: hidden; border: 4px solid #000; background: #101025; box-shadow: 0 4px 0 #000;}
+        .chat-messages { height: 90px; overflow-y: auto; padding: 10px; font-size: 13px; text-align: left; display: flex; flex-direction: column; gap: 6px; font-family: monospace;}
+        .chat-msg { background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 4px; border: 2px solid #000; width: fit-content; max-width: 80%; color: #ffd700;}
+        .chat-msg.me { background: var(--primary); align-self: flex-end; color: #00ff66;}
+        .chat-input-wrapper { display: flex; border-top: 4px solid #000;}
+        .chat-input-wrapper input { flex: 1; border: none; border-radius: 0; margin: 0; padding: 10px; background: transparent; color: white; font-family: monospace;}
+        .chat-input-wrapper button { margin: 0; border: none; border-radius: 0; padding: 10px 18px; background: var(--accent); font-size: 8px; box-shadow: none;}
 
-        /* MANZARALI ARABA YOLU */
-        .road-wrapper { display: flex; width: 100%; height: 350px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; position:relative;}
-        .scenery-side { width: 20%; position: relative; overflow: hidden; transition: background 0.5s; background: #333;}
-        .road-container { width: 60%; background: #222; position: relative; border-left: 5px dashed white; border-right: 5px dashed white; overflow: hidden;}
-        .lane-marker { width: 5px; height: 100%; border-left: 5px dashed rgba(255,255,255,0.3); }
-        .car { position: absolute; bottom: 20px; font-size: 50px; transition: left 0.15s ease-out; z-index: 10;}
-        .obstacle { position: absolute; top: -60px; width: 28%; height: 50px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);}
-        .scenery-item { position: absolute; font-size: 35px; top: -50px; width: 100%; text-align: center; }
+        /* MANZARALI ARABA YOLU (PIXEL-ART OTOYOL) */
+        .road-wrapper { 
+            display: flex; 
+            width: 100%; 
+            height: 350px; 
+            border-radius: 4px; 
+            overflow: hidden; 
+            margin-bottom: 12px; 
+            position:relative;
+            border: 4px solid #000;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+        .scenery-side { 
+            width: 20%; 
+            position: relative; 
+            overflow: hidden; 
+            transition: background 0.5s; 
+            background: #27ae60;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .road-container { 
+            width: 60%; 
+            background: #2c3e50; 
+            position: relative; 
+            border-left: 6px dashed #fff; 
+            border-right: 6px dashed #fff; 
+            overflow: hidden;
+        }
+        .lane-marker { width: 6px; height: 100%; border-left: 6px dashed rgba(255,255,255,0.25); }
+        .car { position: absolute; bottom: 20px; font-size: 52px; transition: left 0.15s ease-out; z-index: 10; filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.4));}
+        .obstacle { 
+            position: absolute; 
+            top: -60px; 
+            width: 28%; 
+            height: 52px; 
+            background: var(--accent); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 13px;
+            border-radius: 4px; 
+            border: 3px solid #000;
+            box-shadow: 0 4px 0 #000;
+            text-align: center;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+        .scenery-item { 
+            position: absolute; 
+            font-size: 38px; 
+            top: -50px; 
+            width: 100%; 
+            text-align: center; 
+            filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.3));
+        }
         .lane-0 { left: 2.5%; } .lane-1 { left: 35.5%; } .lane-2 { left: 69%; }
         .car.lane-0 { left: calc(16.6% - 25px); } .car.lane-1 { left: calc(50% - 25px); } .car.lane-2 { left: calc(83.3% - 25px); }
 
-        /* RESTORAN MODU */
-        .kitchen-arena { height: 380px; background: #3e2723; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; position: relative;}
-        .kitchen-counter { width: 100%; height: 120px; background: #795548; position: absolute; bottom: 0; border-radius: 0 0 10px 10px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; box-sizing: border-box;}
-        .chef-customer { position: absolute; top: 10px; right: 20px; font-size: 60px; }
-        .recipe-plate { font-size: 70px; z-index: 5; transition: 0.3s;}
-        .cooking-hud { width: 100%; display: flex; justify-content: space-between; color: white; font-weight: bold; margin-bottom: 10px;}
-        .step-timer-bar { width: 100%; height: 10px; background: #555; border-radius: 5px; overflow: hidden; margin-bottom: 15px; }
-        .step-timer-fill { height: 100%; background: yellow; width: 100%; }
-        .recipe-progress { display: flex; gap: 5px; margin-bottom: 15px;}
-        .recipe-dot { width: 15px; height: 15px; border-radius: 50%; background: #555; }
+        /* RESTORAN MODU (MUTFAK TEZGAHI & ŞEF RETRO) */
+        .kitchen-arena { 
+            height: 380px; 
+            background: linear-gradient(#5d4037 10%, #3e2723 50%, #1a0c00 95%); /* Mutfak/Duvar/Fırın Ortamı */
+            border-radius: 4px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative;
+            border: 4px solid #000;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.7);
+        }
+        /* Mutfak Rafları Emojiler */
+        .kitchen-arena::before {
+            content: "🏺 🍳 ☕ 🥫        🥫 🍷 🥣";
+            position: absolute;
+            top: 25px;
+            font-size: 18px;
+            opacity: 0.45;
+            word-spacing: 12px;
+            pointer-events: none;
+        }
+        .kitchen-counter { 
+            width: 100%; 
+            height: 120px; 
+            background: #a1887f; 
+            border-top: 8px solid #3e2723;
+            position: absolute; 
+            bottom: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end; 
+            padding-bottom: 24px; 
+            box-sizing: border-box;
+            box-shadow: inset 0 10px 15px rgba(0,0,0,0.3);
+        }
+        .chef-customer { position: absolute; top: 15px; right: 20px; font-size: 64px; filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.4));}
+        .recipe-plate { font-size: 74px; z-index: 5; transition: 0.3s; filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.3));}
+        .cooking-hud { 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-between; 
+            color: white; 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            margin-bottom: 15px;
+        }
+        .step-timer-bar { width: 100%; height: 14px; background: #333; border: 3px solid #000; border-radius: 4px; overflow: hidden; margin-bottom: 15px; box-shadow: inset 0 2px 0 rgba(0,0,0,0.5);}
+        .step-timer-fill { height: 100%; background: #ffd700; width: 100%; }
+        .recipe-progress { display: flex; gap: 6px; margin-bottom: 15px;}
+        .recipe-dot { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #000; background: #555; }
         .recipe-dot.done { background: var(--success); }
         .recipe-dot.fail { background: var(--danger); }
 
-        #theme-toggle { position: absolute; top: 10px; right: 10px; background: transparent; border: 2px solid var(--text); color: var(--text); padding: 5px 10px; }
-        .coin-display { font-size: 20px; color: gold; font-weight: bold; text-align: center; margin-bottom: 10px;}
+        #theme-toggle { 
+            position: absolute; top: 15px; right: 15px; 
+            background: transparent; 
+            border: 3px solid var(--text); 
+            color: var(--text); 
+            padding: 6px 12px; 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--text);
+        }
+        #theme-toggle:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px;
+        }
+        .coin-display { 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 13px; 
+            color: #ffd700; 
+            text-shadow: 2px 2px 0px #000;
+            text-align: center; 
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .controls-hint { font-size: 11px; color: #a0a0d0; margin-top: 8px;}
     </style>
 </head>
 <body>
-    <button id="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    <button id="theme-toggle" onclick="toggleTheme()">🌓 TEMA</button>
     <h1>⛩️ Polyzen</h1>
     <div class="coin-display" id="global-coins">💰 Bakiye: 0 Altın</div>
 
     <!-- ANA MENÜ VE VERİ GİRİŞİ -->
     <div id="screen-menu" class="container">
-        <div class="flex-row">
-            <button onclick="switchScreen('screen-store')" style="background:var(--primary)">🛒 Garaj & Dükkan</button>
-            <button onclick="switchScreen('screen-avatar')" style="background:var(--primary)">🤠 Avatar Düzenle</button>
-            <button onclick="openVocabBook()" style="background:#9c27b0">📖 Kelime Defteri</button>
+        <div class="flex-row" style="margin-bottom:20px;">
+            <button onclick="switchScreen('screen-store')" style="background:var(--primary)">🛒 GARAJ & DÜKKAN</button>
+            <button onclick="switchScreen('screen-avatar')" style="background:var(--primary)">🤠 AVATAR DÜZENLE</button>
+            <button onclick="openVocabBook()" style="background:#9c27b0">📖 KELİME DEFTERİ</button>
         </div>
         
         <h2>Kütüphaneni Yarat</h2>
-        <p style="font-size:14px;">Zorlandığın kelimeler oyunlarda daha sık karşına çıkar. Oyunlar artık çift yönlü çalışır! (Hem Tr-En, Hem En-Tr sorar)</p>
+        <p>Zorlandığın kelimeler oyunlarda daha sık karşına çıkar. Oyunlar artık çift yönlü çalışır! (Hem Tr-En, Hem En-Tr sorar)</p>
         <textarea id="wordInput" rows="8">
 [İspanyolca]
 Hola - Merhaba
@@ -138,91 +443,90 @@ Fish - Balık
 Lemon - Limon
 Milk - Süt
 Ice - Buz</textarea>
-        <button onclick="saveWords()" style="width:100%;">Kelimeleri Kaydet & Güncelle</button>
+        <button onclick="saveWords()" style="width:100%;">💾 KELİMELERİ KAYDET</button>
         
-        <div id="category-selector" class="hidden" style="margin-top:15px; text-align:center;">
+        <div id="category-selector" class="hidden" style="margin-top:20px; text-align:center; border-top: 4px dashed var(--accent); padding-top:20px;">
             <h3>Çalışılacak Kategori:</h3>
-            <select id="cat-select"></select>
+            <select id="cat-select" style="max-width:400px; margin-top:10px;"></select>
             <div class="flex-row" style="margin-top:15px;">
-                <button class="mode-btn" onclick="startMode('scramble')">🌪️ Karışık Harfler</button>
-                <button class="mode-btn" onclick="startMode('duel')">🤠 Kovboy Düellosu</button>
-                <button class="mode-btn" onclick="startMode('car')">🚌 Kelime Şoförü</button>
-                <button class="mode-btn" onclick="startMode('kitchen')" style="background:#ff5722">👨‍🍳 Şefin Restoranı</button>
+                <button class="mode-btn" onclick="startMode('scramble')">🌪️ KARIŞIK HARF</button>
+                <button class="mode-btn" onclick="startMode('duel')">🤠 KOVBOY DÜELLO</button>
+                <button class="mode-btn" onclick="startMode('car')">🚌 KELİME ŞOFÖRÜ</button>
+                <button class="mode-btn" onclick="startMode('kitchen')" style="background:#ff5722">👨‍🍳 RESTORAN</button>
             </div>
         </div>
     </div>
 
     <!-- KELİME DEFTERİ EKRANI -->
     <div id="screen-vocab" class="container hidden">
-        <div class="top-bar"><span>Kelime Defterin</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
-        <p style="font-size:13px; color:#aaa;">Oyun algoritması zorlandığın kelimeleri sana daha çok sorar. "Öğrendim" dediklerini gizler. 5MB Hafıza yaklaşık 100.000 kelime alır!</p>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="top-bar"><span>📖 Kelime Defterin</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+        <p>Oyun algoritması zorlandığın kelimeleri sana daha çok sorar. "Öğrendim" dediklerini gizler.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap: 10px; margin-bottom:15px;">
             <select id="vocab-cat-select" onchange="renderVocabList()" style="width:60%; margin:0;"></select>
-            <button onclick="exportData()" style="margin:0; background:#2196F3;">💾 İndir (Yedekle)</button>
+            <button onclick="exportData()" style="margin:0; background:#2196F3; font-size:8px; padding:10px;">💾 İNDİR (YEDEK)</button>
         </div>
         <div class="vocab-list" id="vocab-list-render"></div>
     </div>
 
     <!-- AVATAR EKRANI -->
     <div id="screen-avatar" class="container hidden">
-        <div class="top-bar"><span>Avatar Düzenleyici</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+        <div class="top-bar"><span>🤠 Avatar Düzenleyici</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
         <div class="avatar-container" id="preview-avatar"></div>
         <div class="customizer-grid">
-            <div><label>Şapka/Saç:</label><select id="av-hat" onchange="updateAvatarPreview()"><option value="🤠">Kovboy 🤠</option><option value="🎩">Sihirbaz 🎩</option><option value="🧢">Şapka 🧢</option><option value="👑">Kral 👑</option><option value="🪖">Asker 🪖</option><option value="👱‍♂️">Sarı Saç 👱‍♂️</option><option value="👩‍🦰">Kızıl Saç 👩‍🦰</option><option value="">Hiçbiri</option></select></div>
-            <div><label>Yüz İfadesi:</label><select id="av-face" onchange="updateAvatarPreview()"><option value="😎">Havalı 😎</option><option value="😃">Gülen 😃</option><option value="😡">Sinirli 😡</option><option value="🤓">İnek 🤓</option><option value="👽">Uzaylı 👽</option><option value="🤡">Palyaço 🤡</option></select></div>
-            <div><label>Üst Kıyafet:</label><input type="color" id="av-body-color" value="#0f3460" onchange="updateAvatarPreview()"></div>
-            <div><label>Alt Kıyafet:</label><input type="color" id="av-legs-color" value="#e94560" onchange="updateAvatarPreview()"></div>
+            <div><label style="font-family:'Press Start 2P',cursive; font-size:9px; display:block; margin-bottom:5px;">Şapka/Saç:</label><select id="av-hat" onchange="updateAvatarPreview()"><option value="🤠">Kovboy 🤠</option><option value="🎩">Sihirbaz 🎩</option><option value="🧢">Şapka 🧢</option><option value="👑">Kral 👑</option><option value="🪖">Asker 🪖</option><option value="👱‍♂️">Sarı Saç 👱‍♂️</option><option value="👩‍🦰">Kızıl Saç 👩‍🦰</option><option value="">Hiçbiri</option></select></div>
+            <div><label style="font-family:'Press Start 2P',cursive; font-size:9px; display:block; margin-bottom:5px;">Yüz:</label><select id="av-face" onchange="updateAvatarPreview()"><option value="😎">Havalı 😎</option><option value="😃">Gülen 😃</option><option value="😡">Sinirli 😡</option><option value="🤓">İnek 🤓</option><option value="👽">Uzaylı 👽</option><option value="🤡">Palyaço 🤡</option></select></div>
+            <div><label style="font-family:'Press Start 2P',cursive; font-size:9px; display:block; margin-bottom:5px;">Üst Kıyafet:</label><input type="color" id="av-body-color" value="#0f3460" onchange="updateAvatarPreview()"></div>
+            <div><label style="font-family:'Press Start 2P',cursive; font-size:9px; display:block; margin-bottom:5px;">Alt Kıyafet:</label><input type="color" id="av-legs-color" value="#e94560" onchange="updateAvatarPreview()"></div>
         </div>
-        <button onclick="saveAvatar()" style="width:100%; margin-top:10px;">Kaydet</button>
+        <button onclick="saveAvatar()" style="width:100%; margin-top:20px;">💾 AVATARI KAYDET</button>
     </div>
 
     <!-- GARAJ & DÜKKAN EKRANI -->
     <div id="screen-store" class="container hidden">
-        <div class="top-bar"><span>Garaj & Dükkan</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
+        <div class="top-bar"><span>🛒 Garaj & Dükkan</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
         <div class="coin-display" id="store-coins">💰 Bakiye: 0 Altın</div>
         <div class="flex-row" id="store-grid"></div>
     </div>
 
     <!-- MOD 1: KARIŞIK HARFLER -->
     <div id="screen-scramble" class="container hidden">
-        <div class="top-bar"><span>Karışık Harfler</span><button onclick="switchScreen('screen-menu')">🏠 Çıkış</button></div>
-        <h2 id="scramble-word" style="font-size: 35px; letter-spacing: 3px; color: var(--accent); min-height: 45px;"></h2>
+        <div class="top-bar"><span>🌪️ Karışık Harfler</span><button onclick="switchScreen('screen-menu')">🏠 Çıkış</button></div>
+        <h2 id="scramble-word" style="font-size: 35px; letter-spacing: 3px; color: var(--accent); min-height: 45px; text-shadow: 3px 3px 0 #000;"></h2>
         <input type="text" id="scramble-input" placeholder="Doğrusu nedir?" onkeypress="if(event.key==='Enter') checkScramble()">
         <div id="scramble-feedback" style="text-align:center; min-height:30px; font-weight:bold; margin-bottom:15px; white-space: pre-line;"></div>
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;"><button onclick="checkScramble()" style="background:var(--success)">✅ Kontrol Et</button><button onclick="nextScramble()" style="background:#555">Geç ⏭️</button></div>
-        <div style="display:flex; justify-content:center; gap:10px; border-top: 1px solid #555; padding-top: 15px;"><button onclick="giveScrambleHint()" style="background:#ff9800; color:black;">💡 İpucu Al</button><button onclick="showScrambleAnswer()" style="background:var(--danger)">👀 Doğrusunu Gör</button></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;"><button onclick="checkScramble()" style="background:var(--success)">✅ KONTROL</button><button onclick="nextScramble()" style="background:#555">GEÇ ⏭️</button></div>
+        <div style="display:flex; justify-content:center; gap:10px; border-top: 4px dashed #555; padding-top: 15px;"><button onclick="giveScrambleHint()" style="background:#ff9800; color:black;">💡 İPUCU AL</button><button onclick="showScrambleAnswer()" style="background:var(--danger)">👀 CEVAP</button></div>
     </div>
 
     <!-- MOD 2: KOVBOY DÜELLOSU & CHATBOX -->
     <div id="screen-duel" class="container hidden">
-        <div class="top-bar"><span>Kovboy Düellosu</span><button onclick="goHomeFromDuel()">🏠 Çıkış</button></div>
+        <div class="top-bar"><span>🤠 Kovboy Düellosu</span><button onclick="goHomeFromDuel()">🏠 Çıkış</button></div>
         
         <div id="duel-lobby">
             <input type="text" id="player-name" placeholder="Oyuncu Adın (Örn: Zaze)" maxlength="12">
-            <button onclick="startBotDuel()" style="width:100%; background:#9c27b0; margin-bottom:15px; font-size:18px;">🤖 Yapay Zekaya Karşı Oyna</button>
-            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; margin-bottom:10px; text-align:center;"><p style="margin-top:0; font-size:14px; color:#aaa;">veya Arkadaşınla Oyna</p><button onclick="hostRoom()">Oda Kur</button><p id="lobby-status" style="color:var(--success);"></p></div>
-            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; text-align:center;"><input type="text" id="join-code" placeholder="4 Haneli Oda Kodu" style="text-align:center; width:50%;"><br><button onclick="joinRoom()" style="background:#2196F3;">Odaya Katıl</button><p id="join-status" style="color:var(--success);"></p></div>
+            <button onclick="startBotDuel()" style="width:100%; background:#9c27b0; margin-bottom:15px; font-size:11px;">🤖 YAPAY ZEKAYA (BOT) KARŞI OYNA</button>
+            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:4px; border: 4px solid #000; margin-bottom:10px; text-align:center;"><p style="margin-top:0; font-size:12px; color:#aaa; font-family:'Press Start 2P',cursive;">VEYA ARKADAŞINLA OYNA</p><button onclick="hostRoom()">ODA KUR</button><p id="lobby-status" style="color:var(--success); font-family:monospace;"></p></div>
+            <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:4px; border: 4px solid #000; text-align:center;"><input type="text" id="join-code" placeholder="4 Haneli Oda Kodu" style="text-align:center; width:50%;"><br><button onclick="joinRoom()" style="background:#2196F3;">ODAYA KATIL</button><p id="join-status" style="color:var(--success); font-family:monospace;"></p></div>
         </div>
 
         <div id="duel-game" class="hidden">
             <div class="duel-arena">
                 <div class="duel-ui">
-                    <div style="font-size:24px; color:yellow; font-weight:bold; margin-bottom:5px;" id="duel-timer">40</div>
-                    <div id="duel-target" style="font-size:20px; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; color:white; margin-bottom:10px;">Bekleniyor...</div>
+                    <div style="font-size:24px; color:yellow; font-weight:bold; margin-bottom:5px; font-family:'Press Start 2P',cursive; text-shadow:2px 2px 0 #000;" id="duel-timer">40</div>
+                    <div id="duel-target">Bekleniyor...</div>
                     <div style="display:flex; gap:10px;"><div id="duel-opt1" class="duel-opt" onpointerdown="handleDuelInput(1)">?</div><div id="duel-opt2" class="duel-opt" onpointerdown="handleDuelInput(2)">?</div></div>
-                    <!-- Yeniden Oyna Butonu -->
-                    <button id="duel-replay-btn" class="hidden" onclick="requestReplay()" style="background:gold; color:black; margin-top:10px;">🔄 Yeniden Oyna</button>
+                    <button id="duel-replay-btn" class="hidden" onclick="requestReplay()" style="background:gold; color:black; margin-top:10px;">🔄 YENİDEN OYNA</button>
                 </div>
-                <div class="player" id="p1"><div class="hp-bar-container"><div id="p1-hp" class="hp-bar"></div></div><div id="p1-avatar-render"></div><div style="font-weight:bold;" id="p1-name-display">Sen</div></div>
-                <div class="player" id="p2"><div class="hp-bar-container"><div id="p2-hp" class="hp-bar" style="background:#2196F3;"></div></div><div id="p2-avatar-render"></div><div style="font-weight:bold;" id="p2-name-display">Rakip</div></div>
+                <div class="player" id="p1"><div class="hp-bar-container"><div id="p1-hp" class="hp-bar"></div></div><div id="p1-avatar-render"></div><div style="font-weight:bold; font-size:12px;" id="p1-name-display">Sen</div></div>
+                <div class="player" id="p2"><div class="hp-bar-container"><div id="p2-hp" class="hp-bar" style="background:#2196F3;"></div></div><div id="p2-avatar-render"></div><div style="font-weight:bold; font-size:12px;" id="p2-name-display">Rakip</div></div>
             </div>
 
-            <!-- CHATBOX GÖRÜNÜMÜ -->
+            <!-- CHATBOX -->
             <div class="chat-container">
                 <div class="chat-messages" id="chat-messages-render"></div>
                 <div class="chat-input-wrapper">
                     <input type="text" id="chat-input" placeholder="Bir şeyler yaz..." onkeypress="if(event.key==='Enter') sendChatMessage()">
-                    <button onclick="sendChatMessage()">Gönder</button>
+                    <button onclick="sendChatMessage()">GÖNDER</button>
                 </div>
             </div>
         </div>
@@ -230,20 +534,20 @@ Ice - Buz</textarea>
 
     <!-- MOD 3: KELİME ŞOFÖRÜ -->
     <div id="screen-car" class="container hidden">
-        <div class="top-bar"><span>Kelime Şoförü</span><button onclick="goHomeCar()">🏠 Çıkış</button></div>
-        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;"><span id="car-timer-display">Süre: 60s</span><span id="car-lives-display">❤️ ❤️ ❤️</span><span id="car-score-display">Skor: 0</span></div>
-        <div id="car-target-word" style="text-align:center; font-size:18px; color:var(--accent); font-weight:bold; margin-bottom:10px;">Başlıyor...</div>
+        <div class="top-bar"><span>🚌 Kelime Şoförü</span><button onclick="goHomeCar()">🏠 Çıkış</button></div>
+        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px; font-family:'Press Start 2P',cursive; font-size:9px;"><span id="car-timer-display">Süre: 60s</span><span id="car-lives-display">❤️ ❤️ ❤️</span><span id="car-score-display">Skor: 0</span></div>
+        <div id="car-target-word" style="text-align:center; font-size:18px; color:var(--accent); font-weight:bold; margin-bottom:15px; font-family:'Press Start 2P',cursive; text-shadow:2px 2px 0 #000;">Başlıyor...</div>
         <div class="road-wrapper">
             <div class="scenery-side" id="scenery-left"></div>
             <div class="road-container" id="road"><div style="position:absolute; width:100%; height:100%; display:flex; justify-content:space-evenly; pointer-events:none;"><div class="lane-marker"></div><div class="lane-marker"></div></div><div id="player-car" class="car lane-1">🚗</div></div>
             <div class="scenery-side" id="scenery-right"></div>
         </div>
-        <div style="display:flex; gap:10px; margin-top:10px;"><button onpointerdown="moveCar(-1)" style="flex:1; height:50px; font-size:20px;">⬅️ SOL</button><button onpointerdown="moveCar(1)" style="flex:1; height:50px; font-size:20px;">SAĞ ➡️</button></div>
+        <div style="display:flex; gap:10px; margin-top:10px;"><button onpointerdown="moveCar(-1)" style="flex:1; height:60px; font-size:14px; box-shadow:0 5px 0 #000;">⬅️ SOL</button><button onpointerdown="moveCar(1)" style="flex:1; height:60px; font-size:14px; box-shadow:0 5px 0 #000;">SAĞ ➡️</button></div>
     </div>
 
-    <!-- ŞEFİN RESTORANI -->
+    <!-- MOD 4: ŞEFİN RESTORANI -->
     <div id="screen-kitchen" class="container hidden">
-        <div class="top-bar"><span>Şefin Restoranı</span><button onclick="goHomeKitchen()">🏠 Çıkış</button></div>
+        <div class="top-bar"><span>👨‍🍳 Şefin Restoranı</span><button onclick="goHomeKitchen()">🏠 Çıkış</button></div>
         <div class="cooking-hud">
             <span id="kitchen-timer-display">Süre: 120s</span>
             <span id="kitchen-score-display">Skor: 0</span>
@@ -254,8 +558,8 @@ Ice - Buz</textarea>
                 <h3 id="recipe-name" style="margin:0 0 10px 0; color:gold;">Çorba Siparişi!</h3>
                 <div class="recipe-progress" id="recipe-progress-dots"></div>
                 <div class="step-timer-bar"><div class="step-timer-fill" id="step-timer-fill"></div></div>
-                <div id="kitchen-target" style="font-size:22px; margin-bottom:15px; background:rgba(0,0,0,0.5); padding:10px; border-radius:5px;">Sıradaki Malzeme: Bekleniyor...</div>
-                <div style="display:flex; gap:10px; justify-content:center; width:100%;">
+                <div id="kitchen-target" style="font-family:'Press Start 2P',cursive; font-size:10px; border:4px solid var(--border-color); color:white; background:rgba(0,0,0,0.85); box-shadow:0 4px 0 #000; padding:10px; border-radius:4px; margin-bottom:15px; min-height:18px;">Sıradaki Malzeme: Bekleniyor...</div>
+                <div style="display:flex; gap:12px; justify-content:center; width:100%;">
                     <div id="kitchen-opt1" class="duel-opt" onpointerdown="handleKitchenInput(1)">?</div>
                     <div id="kitchen-opt2" class="duel-opt" onpointerdown="handleKitchenInput(2)">?</div>
                 </div>
@@ -286,7 +590,10 @@ Ice - Buz</textarea>
 
         function saveData() { localStorage.setItem('polyglotData', JSON.stringify(userData)); updateCoinsUI(); }
         function addCoins(amount) { userData.coins += amount; saveData(); }
-        function updateCoinsUI() { document.getElementById('global-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`; document.getElementById('store-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`; }
+        function updateCoinsUI() { 
+            document.getElementById('global-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`; 
+            document.getElementById('store-coins').innerText = `💰 Bakiye: ${userData.coins} Altın`; 
+        }
         function toggleTheme() { document.body.classList.toggle('light-mode'); userData.theme = document.body.classList.contains('light-mode') ? 'light' : 'dark'; saveData(); }
         function switchScreen(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); activeScreen = id; if(id === 'screen-store') renderStore(); }
 
@@ -308,7 +615,7 @@ Ice - Buz</textarea>
         function equipItem(id) { userData.equippedVehicle = id; saveData(); renderStore(); }
         function getEquippedIcon() { return storeItems.find(i => i.id === userData.equippedVehicle)?.icon || "🚗"; }
 
-        // --- KELİME KAYIT VE ADİL ALGORİTMA (FİX) ---
+        // --- KELİME KAYIT VE ADİL ALGORİTMA ---
         function saveWords() {
             const lines = document.getElementById('wordInput').value.split('\n');
             allWords = {}; let currentCat = "Genel"; let totalCount = 0;
@@ -338,31 +645,21 @@ Ice - Buz</textarea>
             document.getElementById('category-selector').classList.remove('hidden');
         }
 
-        // AKILLI KELİME SEÇİCİ - ÇÖKME VE TEK KELİME KİLİTLENMESİ TAMAMEN FİXED!
         function getSmartRandom(arr) {
             if(!arr || arr.length === 0) return {target: "Hata", native: "Hata"};
-            
-            // Eğer kategori veya liste çok kısaysa (mesela 5-6 kelimelikse) direkt adil rastgele seçelim
-            if(arr.length < 5) {
-                return arr[Math.floor(Math.random() * arr.length)];
-            }
+            if(arr.length < 5) return arr[Math.floor(Math.random() * arr.length)];
 
-            // "mastered" olmayan kelimeleri filtrele
             let pool = arr.filter(w => userData.wordStats[w.target] && !userData.wordStats[w.target].mastered);
-            if(pool.length < 3) pool = arr; // Havuz çok daraldıysa hepsi dahil olsun
+            if(pool.length < 3) pool = arr; 
 
-            // Yanlış sayısı doğru sayısından çok olan "zor" kelimeleri süz
             let toughWords = pool.filter(w => {
                 let stats = userData.wordStats[w.target];
                 return stats && stats.wrong > stats.correct;
             });
 
-            // %50 ihtimalle zorlandığın kelimelerden, %50 normal adil rastgele seçim yap
             if(toughWords.length > 0 && Math.random() < 0.5) {
                 return toughWords[Math.floor(Math.random() * toughWords.length)];
             }
-
-            // Yedek / Genel seçim
             return pool[Math.floor(Math.random() * pool.length)];
         }
 
@@ -387,7 +684,7 @@ Ice - Buz</textarea>
             if(cat !== "Tümü") displayWords = displayWords.filter(w => w.category === cat);
             displayWords.forEach(w => {
                 let isMastered = w.mastered;
-                let btnHTML = isMastered ? `<button onclick="toggleMastery('${w.target}')" style="background:#555; padding:5px;">Öğrenmedim</button>` : `<button onclick="toggleMastery('${w.target}')" style="background:var(--success); padding:5px;">Öğrendim ✅</button>`;
+                let btnHTML = isMastered ? `<button onclick="toggleMastery('${w.target}')" style="background:#555; padding:5px; font-size:8px;">Öğrenmedim</button>` : `<button onclick="toggleMastery('${w.target}')" style="background:var(--success); padding:5px; font-size:8px;">Öğrendim ✅</button>`;
                 listDiv.innerHTML += `<div class="vocab-item ${isMastered ? 'vocab-mastered' : ''}"><div><strong>${w.target}</strong> - ${w.native}<div class="vocab-stats">Doğru: ${w.correct} | Yanlış: ${w.wrong}</div></div>${btnHTML}</div>`;
             });
         }
@@ -476,7 +773,6 @@ Ice - Buz</textarea>
             });
         }
 
-        // CHAT MEKANİZMASI
         function sendChatMessage() {
             let inp = document.getElementById('chat-input');
             let msg = inp.value.trim();
@@ -501,7 +797,6 @@ Ice - Buz</textarea>
             container.scrollTop = container.scrollHeight;
         }
 
-        // REPLAY (Yeniden Oyna) SİSTEMİ
         function requestReplay() {
             document.getElementById('duel-replay-btn').classList.add('hidden');
             if(isBotMode) { startDuelInit(); return; }
@@ -521,8 +816,7 @@ Ice - Buz</textarea>
             
             duelSide = Math.random()>0.5?1:2; 
             
-            // YENİ KOVBOY KARIŞIK SİSTEMİ (Heyecanı arttıran çeşitler!)
-            let duelType = Math.floor(Math.random() * 3); // 0: Hedef->Anlam, 1: Anlam->Hedef, 2: Karışık Harfler
+            let duelType = Math.floor(Math.random() * 3); 
             let promptText = ""; let correctOpt = ""; let wrongOpt = "";
 
             if(duelType === 0) {
@@ -569,11 +863,11 @@ Ice - Buz</textarea>
 
         function startCarGame() {
             carLane=1; moveCar(0); carLives=3; carScore=0; carTime=60; 
-            document.getElementById('player-car').innerText = getEquippedIcon(); // Mağazadan seçilen Otobüs vb. artık doğru şekilde gözükür!
+            document.getElementById('player-car').innerText = getEquippedIcon(); 
             activeTheme = roadThemes[Math.floor(Math.random() * roadThemes.length)]; 
             document.getElementById('scenery-left').style.background = activeTheme.bg; document.getElementById('scenery-right').style.background = activeTheme.bg;
             isCarActive=true; updateCarHUD();
-            clearInterval(carInt); // Ekstra interval yığılma hatasını kesinlikle önler
+            clearInterval(carInt); 
             carInt = setInterval(()=>{ carTime--; updateCarHUD(); if(carTime<=0) endCarGame(); },1000); spawnObs();
         }
         function updateCarHUD() { document.getElementById('car-lives-display').innerText = "❤️".repeat(carLives); document.getElementById('car-score-display').innerText = `Skor: ${carScore}`; document.getElementById('car-timer-display').innerText = `Süre: ${carTime}s`; }
@@ -665,11 +959,11 @@ Ice - Buz</textarea>
             document.getElementById('kitchen-opt1').innerText = kitchenCorrectSide === 1 ? correctOpt : wrongOpt;
             document.getElementById('kitchen-opt2').innerText = kitchenCorrectSide === 2 ? correctOpt : wrongOpt;
 
-            stepTimeLeft = 100; document.getElementById('step-timer-fill').style.width = '100%'; document.getElementById('step-timer-fill').style.background = 'var(--success)';
+            stepTimeLeft = 100; document.getElementById('step-timer-fill').style.width = '100%'; document.getElementById('step-timer-fill').style.background = '#00ff66';
             clearInterval(stepTimerInt);
             stepTimerInt = setInterval(() => {
                 stepTimeLeft -= 2; document.getElementById('step-timer-fill').style.width = `${stepTimeLeft}%`;
-                if(stepTimeLeft < 40) document.getElementById('step-timer-fill').style.background = 'var(--danger)';
+                if(stepTimeLeft < 40) document.getElementById('step-timer-fill').style.background = '#ff2a2a';
                 if(stepTimeLeft <= 0) processKitchenInput(0);
             }, 100);
         }
