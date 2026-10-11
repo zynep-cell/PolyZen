@@ -108,7 +108,7 @@
         </div>
         
         <h2>Kütüphaneni Yarat</h2>
-        <p style="font-size:14px;">Zorlandığın kelimeler oyunlarda daha sık karşına çıkar. Cümleler de eklenebilir!</p>
+        <p style="font-size:14px;">Zorlandığın kelimeler oyunlarda daha sık karşına çıkar. Oyunlar artık çift yönlü çalışır! (Hem Tr-En, Hem En-Tr sorar)</p>
         <textarea id="wordInput" rows="8">
 [İspanyolca]
 Hola - Merhaba
@@ -146,14 +146,15 @@ Ice - Buz</textarea>
     <!-- KELİME DEFTERİ EKRANI -->
     <div id="screen-vocab" class="container hidden">
         <div class="top-bar"><span>Kelime Defterin</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
-        <p style="font-size:13px; color:#aaa;">Oyun algoritması zorlandığın kelimeleri sana daha çok sorar. "Öğrendim" dediklerini gizler.</p>
-        <select id="vocab-cat-select" onchange="renderVocabList()" style="margin-bottom:10px;"></select>
-        <div class="vocab-list" id="vocab-list-render">
-            <!-- JS ile doldurulacak -->
+        <p style="font-size:13px; color:#aaa;">Oyun algoritması zorlandığın kelimeleri sana daha çok sorar. "Öğrendim" dediklerini gizler. 5MB Hafıza yaklaşık 100.000 kelime alır!</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <select id="vocab-cat-select" onchange="renderVocabList()" style="width:60%; margin:0;"></select>
+            <button onclick="exportData()" style="margin:0; background:#2196F3;">💾 İndir (Yedekle)</button>
         </div>
+        <div class="vocab-list" id="vocab-list-render"></div>
     </div>
 
-    <!-- AVATAR, DÜKKAN, SCRAMBLE, DUEL, CAR EKRANLARI (Öncekiyle Aynı Yapı) -->
+    <!-- AVATAR, DÜKKAN, SCRAMBLE, DUEL, CAR EKRANLARI -->
     <div id="screen-avatar" class="container hidden">
         <div class="top-bar"><span>Avatar Düzenleyici</span><button onclick="switchScreen('screen-menu')">🏠 Menü</button></div>
         <div class="avatar-container" id="preview-avatar"></div>
@@ -214,34 +215,26 @@ Ice - Buz</textarea>
         <div style="display:flex; gap:10px; margin-top:10px;"><button onpointerdown="moveCar(-1)" style="flex:1; height:50px; font-size:20px;">⬅️ SOL</button><button onpointerdown="moveCar(1)" style="flex:1; height:50px; font-size:20px;">SAĞ ➡️</button></div>
     </div>
 
-    <!-- YENİ: ŞEFİN RESTORANI (YEMEK OYUNU) -->
+    <!-- ŞEFİN RESTORANI -->
     <div id="screen-kitchen" class="container hidden">
         <div class="top-bar"><span>Şefin Restoranı</span><button onclick="goHomeKitchen()">🏠 Çıkış</button></div>
         <div class="cooking-hud">
             <span id="kitchen-timer-display">Süre: 120s</span>
-            <span id="kitchen-score-display">Puan: ⭐⭐⭐⭐⭐</span>
+            <span id="kitchen-score-display">Skor: 0</span>
         </div>
-        
         <div class="kitchen-arena">
             <div class="chef-customer" id="customer-emoji">🙎‍♂️</div>
-            
             <div style="text-align:center; z-index:10; width:100%;">
                 <h3 id="recipe-name" style="margin:0 0 10px 0; color:gold;">Çorba Siparişi!</h3>
-                <div class="recipe-progress" id="recipe-progress-dots">
-                    <!-- Noktalar JS ile eklenecek -->
-                </div>
+                <div class="recipe-progress" id="recipe-progress-dots"></div>
                 <div class="step-timer-bar"><div class="step-timer-fill" id="step-timer-fill"></div></div>
                 <div id="kitchen-target" style="font-size:22px; margin-bottom:15px; background:rgba(0,0,0,0.5); padding:10px; border-radius:5px;">Sıradaki Malzeme: Bekleniyor...</div>
-                
                 <div style="display:flex; gap:10px; justify-content:center; width:100%;">
                     <div id="kitchen-opt1" class="duel-opt" onpointerdown="handleKitchenInput(1)">?</div>
                     <div id="kitchen-opt2" class="duel-opt" onpointerdown="handleKitchenInput(2)">?</div>
                 </div>
             </div>
-
-            <div class="kitchen-counter">
-                <div class="recipe-plate" id="kitchen-plate">🍽️</div>
-            </div>
+            <div class="kitchen-counter"><div class="recipe-plate" id="kitchen-plate">🍽️</div></div>
         </div>
     </div>
 
@@ -252,7 +245,6 @@ Ice - Buz</textarea>
         let userData = JSON.parse(localStorage.getItem('polyglotData')) || {
             coins: 0, theme: 'dark', avatar: { hat: '🤠', face: '😎', body: '#0f3460', legs: '#e94560' }, inventory: ['car'], equippedVehicle: 'car', wordStats: {}
         };
-        // wordStats yapısı: { "Hola": { target: "Hola", native: "Merhaba", correct: 2, wrong: 1, mastered: false } }
 
         const storeItems = [
             { id: 'bicycle', icon: '🚲', name: 'Bisiklet', price: 100 }, { id: 'car', icon: '🚗', name: 'Araba', price: 0 },
@@ -287,7 +279,7 @@ Ice - Buz</textarea>
         }
         function buyItem(id, price) { if(userData.coins >= price) { userData.coins -= price; userData.inventory.push(id); saveData(); renderStore(); } else alert("Yeterli altının yok!"); }
         function equipItem(id) { userData.equippedVehicle = id; saveData(); renderStore(); }
-        function getEquippedIcon() { return storeItems.find(i => i.id === userData.equippedVehicle).icon; }
+        function getEquippedIcon() { return storeItems.find(i => i.id === userData.equippedVehicle).icon || "🚗"; }
 
         // --- KELİME KAYIT VE AKILLI ALGORİTMA ---
         function saveWords() {
@@ -303,20 +295,14 @@ Ice - Buz</textarea>
                         if(!allWords[currentCat]) allWords[currentCat] = [];
                         allWords[currentCat].push({ target: targetStr, native: nativeStr });
                         
-                        // İstatistik veritabanına ekle (Eğer yoksa)
-                        if(!userData.wordStats[targetStr]) {
-                            userData.wordStats[targetStr] = { target: targetStr, native: nativeStr, category: currentCat, correct: 0, wrong: 0, mastered: false };
-                        } else {
-                            // Varsa bile kategori ve anlamı güncelle
-                            userData.wordStats[targetStr].native = nativeStr;
-                            userData.wordStats[targetStr].category = currentCat;
-                        }
+                        if(!userData.wordStats[targetStr]) { userData.wordStats[targetStr] = { target: targetStr, native: nativeStr, category: currentCat, correct: 0, wrong: 0, mastered: false }; } 
+                        else { userData.wordStats[targetStr].native = nativeStr; userData.wordStats[targetStr].category = currentCat; }
                         totalCount++;
                     }
                 }
             });
             if(totalCount < 5) return alert("Kütüphanene en az 5 kelime girmelisin!");
-            saveData(); // İstatistikleri kaydet
+            saveData();
             allWords["Tümü (Karışık)"] = [];
             for(let cat in allWords) if(cat !== "Tümü (Karışık)") allWords["Tümü (Karışık)"] = allWords["Tümü (Karışık)"].concat(allWords[cat]);
 
@@ -325,29 +311,27 @@ Ice - Buz</textarea>
             document.getElementById('category-selector').classList.remove('hidden');
         }
 
-        // AKILLI KELİME SEÇİCİ (Zorlanılanları daha çok sorar)
+        // BÜYÜK BUG BURADA DÜZELTİLDİ: Dizi dışına taşma hatası (Out of Bounds Fix)
         function getSmartRandom(arr) {
+            if(!arr || arr.length === 0) return {target: "Hata", native: "Hata"};
             let pool = arr.filter(w => userData.wordStats[w.target] && !userData.wordStats[w.target].mastered);
-            if(pool.length === 0) pool = arr; // Hepsi öğrenilmişse hepsinden sor
+            if(pool.length === 0) pool = arr; 
             
-            // Yanlış sayısı doğru sayısından fazla olanları ağırlıklandır
             pool.sort((a,b) => {
                 let aStats = userData.wordStats[a.target]; let bStats = userData.wordStats[b.target];
                 let aScore = aStats ? (aStats.wrong - aStats.correct) : 0;
                 let bScore = bStats ? (bStats.wrong - bStats.correct) : 0;
-                return bScore - aScore; // Kötü bilinenler üstte
+                return bScore - aScore; 
             });
             
-            // Tamamen ezber olmasın diye en kötü %30'luk dilimden rastgele birini seç
-            let topSlice = Math.max(3, Math.floor(pool.length * 0.3));
+            // Dizi kısa olsa bile kesinlikle güvenli seçim yapar
+            let topSlice = Math.min(pool.length, Math.max(1, Math.floor(pool.length * 0.3)));
             return pool[Math.floor(Math.random() * topSlice)];
         }
 
-        // Oyun İstatistik Kaydedici
         function recordStat(target, isCorrect) {
             if(userData.wordStats[target]) {
-                if(isCorrect) userData.wordStats[target].correct++;
-                else userData.wordStats[target].wrong++;
+                if(isCorrect) userData.wordStats[target].correct++; else userData.wordStats[target].wrong++;
                 saveData();
             }
         }
@@ -362,49 +346,41 @@ Ice - Buz</textarea>
         function renderVocabList() {
             let cat = document.getElementById('vocab-cat-select').value;
             let listDiv = document.getElementById('vocab-list-render'); listDiv.innerHTML = '';
-            
             let displayWords = Object.values(userData.wordStats);
             if(cat !== "Tümü") displayWords = displayWords.filter(w => w.category === cat);
-            
             displayWords.forEach(w => {
                 let isMastered = w.mastered;
                 let btnHTML = isMastered ? `<button onclick="toggleMastery('${w.target}')" style="background:#555; padding:5px;">Öğrenmedim</button>` : `<button onclick="toggleMastery('${w.target}')" style="background:var(--success); padding:5px;">Öğrendim ✅</button>`;
-                
-                listDiv.innerHTML += `
-                <div class="vocab-item ${isMastered ? 'vocab-mastered' : ''}">
-                    <div>
-                        <strong>${w.target}</strong> - ${w.native}
-                        <div class="vocab-stats">Doğru: ${w.correct} | Yanlış: ${w.wrong}</div>
-                    </div>
-                    ${btnHTML}
-                </div>`;
+                listDiv.innerHTML += `<div class="vocab-item ${isMastered ? 'vocab-mastered' : ''}"><div><strong>${w.target}</strong> - ${w.native}<div class="vocab-stats">Doğru: ${w.correct} | Yanlış: ${w.wrong}</div></div>${btnHTML}</div>`;
             });
         }
-        function toggleMastery(target) {
-            if(userData.wordStats[target]) { userData.wordStats[target].mastered = !userData.wordStats[target].mastered; saveData(); renderVocabList(); }
-        }
+        function toggleMastery(target) { if(userData.wordStats[target]) { userData.wordStats[target].mastered = !userData.wordStats[target].mastered; saveData(); renderVocabList(); } }
 
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-act," + encodeURIComponent(JSON.stringify(userData));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "polyzen_yedek.json");
+            dlAnchorElem.click();
+        }
 
         function startMode(mode) {
             activeWords = allWords[document.getElementById('cat-select').value];
             if(mode === 'scramble') { switchScreen('screen-scramble'); nextScramble(); }
             if(mode === 'duel') { switchScreen('screen-duel'); document.getElementById('duel-lobby').classList.remove('hidden'); document.getElementById('duel-game').classList.add('hidden'); }
             if(mode === 'car') { switchScreen('screen-car'); startCarGame(); }
-            if(mode === 'kitchen') { 
-                if(activeWords.length < 5) return alert("Restoran modu için en az 5 kelimeye ihtiyaç var!");
-                switchScreen('screen-kitchen'); startKitchenGame(); 
-            }
+            if(mode === 'kitchen') { if(activeWords.length < 5) return alert("Restoran modu için en az 5 kelimeye ihtiyaç var!"); switchScreen('screen-kitchen'); startKitchenGame(); }
         }
 
-        // CÜMLE BOŞLUK KORUMALI SHUFFLE
         function shuffleTextPreserveSpaces(str) {
+            if(!str) return "";
             let chars = str.split(''); let nonSpaces = chars.filter(c => c !== ' '); nonSpaces.sort(() => 0.5 - Math.random());
             let res = '', nsIdx = 0;
             for(let i=0; i<chars.length; i++) { if(chars[i] === ' ') res += '   '; else res += nonSpaces[nsIdx++]; }
             return res;
         }
 
-        // MOD 1: KARIŞIK HARFLER
+        // MOD 1: KARIŞIK HARFLER (Sadece hedef dilde harf karıştırma)
         let currScramble = null; let hintLevel = 0;
         function nextScramble() {
             currScramble = getSmartRandom(activeWords);
@@ -433,11 +409,121 @@ Ice - Buz</textarea>
         }
         function showScrambleAnswer() { document.getElementById('scramble-feedback').innerText = `👀 Cevap: ${currScramble.target}`; document.getElementById('scramble-feedback').style.color = "var(--accent)"; document.getElementById('scramble-input').value = currScramble.target; hintLevel = 99; recordStat(currScramble.target, false); }
 
-        // MOD 2 VE 3 KISALATILDI (Mantık aynı, getSmartRandom ve recordStat eklendi)
-        // ... (Kovboy ve Araba modunun içi bir önceki sürümle tamamen aynı mantıkta çalışır, 
-        // yer tasarrufu için özet geçiyorum, temel farklılık `getRandom` yerine `getSmartRandom` kullanılması ve `checkCarColl` içinde `recordStat` çağrılması)
+        // MOD 2: KOVBOY DÜELLOSU (YENİ ÇİFT YÖNLÜ)
+        let peer, conn, isHost = false, isBotMode = false, botTimer = null;
+        let myName="", oppName="", oppAvatar={};
+        let p1Hp=100, p2Hp=100, duelActive=false, duelSide=0, duelTimer=40, duelInt;
+        let isDuelOver = false;
+
+        function startBotDuel() { isBotMode = true; isHost = true; isDuelOver = false; myName = document.getElementById('player-name').value || "Sen"; oppName = "Kovboy Bot 🤖"; oppAvatar = { hat: '🎩', face: '🤖', body: '#333333', legs: '#111111' }; document.getElementById('duel-lobby').classList.add('hidden'); document.getElementById('duel-game').classList.remove('hidden'); renderDuelAvatars(); startDuelInit(); }
+        function hostRoom() { isBotMode = false; isDuelOver = false; myName = document.getElementById('player-name').value || "Oyuncu1"; const code = Math.random().toString(36).substring(2,6).toUpperCase(); document.getElementById('lobby-status').innerText = "Bağlanıyor..."; peer = new Peer('polyglot-' + code); peer.on('open', () => document.getElementById('lobby-status').innerText = `Oda Kodun: ${code}. Rakip bekleniyor...`); peer.on('connection', (c) => { isHost = true; conn = c; setupConn(); }); }
+        function joinRoom() { isBotMode = false; isDuelOver = false; myName = document.getElementById('player-name').value || "Oyuncu2"; const code = document.getElementById('join-code').value.toUpperCase(); document.getElementById('join-status').innerText = "Bağlanıyor..."; peer = new Peer(); peer.on('open', () => { isHost=false; conn = peer.connect('polyglot-'+code); setupConn(); }); }
         
-        // --- YENİ MOD: ŞEFİN RESTORANI ---
+        function setupConn() {
+            conn.on('open', () => { document.getElementById('duel-lobby').classList.add('hidden'); document.getElementById('duel-game').classList.remove('hidden'); conn.send({ type: 'hello', name: myName, avatar: userData.avatar }); if(isHost) setTimeout(() => { conn.send({type:'start', words: activeWords, hostName: myName, hostAvatar: userData.avatar}); startDuelInit(); }, 1000); });
+            conn.on('data', (d) => {
+                if(d.type === 'hello') { oppName = d.name; oppAvatar = d.avatar; renderDuelAvatars(); }
+                if(d.type === 'start') { activeWords = d.words; oppName = d.hostName; oppAvatar = d.hostAvatar; renderDuelAvatars(); }
+                if(d.type === 'round') { document.getElementById('duel-target').innerText = d.target; document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2; document.getElementById('duel-target').style.color = "white"; duelSide = d.side; duelActive = true; }
+                if(d.type === 'hit' && isHost) processDuelHit(d.side, 2);
+                if(d.type === 'state') { p1Hp = d.p1; p2Hp = d.p2; updateDuelHP(); if(d.msg) document.getElementById('duel-target').innerText = d.msg; }
+                if(d.type === 'gameover') { if(isDuelOver) return; isDuelOver = true; clearInterval(duelInt); let endMsg = `${d.winner} Kazandı!`; if(d.winner === myName) { endMsg += " +50 💰"; addCoins(50); } document.getElementById('duel-target').innerText = endMsg; document.getElementById('duel-target').style.color = "gold"; setTimeout(goHomeFromDuel, 3000); }
+            });
+        }
+        function renderDuelAvatars() { document.getElementById('p1-name-display').innerText = isHost ? myName : oppName; document.getElementById('p2-name-display').innerText = isHost ? oppName : myName; document.getElementById('p1-avatar-render').innerHTML = generateAvatarHTML(isHost ? userData.avatar : oppAvatar); document.getElementById('p2-avatar-render').innerHTML = generateAvatarHTML(isHost ? oppAvatar : userData.avatar); }
+        function startDuelInit() { p1Hp = 100; p2Hp = 100; updateDuelHP(); duelTimer = 40; isDuelOver = false; document.getElementById('duel-timer').innerText = duelTimer; clearInterval(duelInt); duelInt = setInterval(()=> { duelTimer--; document.getElementById('duel-timer').innerText = duelTimer; if(duelTimer<=0) endDuel(); }, 1000); nextDuelRound(); }
+        
+        function nextDuelRound() {
+            if(!isHost || p1Hp<=0 || p2Hp<=0 || duelTimer<=0 || isDuelOver) return;
+            const w = getSmartRandom(activeWords); 
+            
+            // Eski karışık kelime yerine, listeden rastgele TAMAMEN BAŞKA bir kelime seçilir
+            let wrongWords = activeWords.filter(x => x.target !== w.target);
+            let wrong = wrongWords.length > 0 ? getSmartRandom(wrongWords) : {target: "Hata", native: "Hata"};
+            
+            duelSide = Math.random()>0.5?1:2; 
+            let isRev = Math.random() > 0.5; // Çift yönlü sorma!
+            
+            let promptText = isRev ? w.target : w.native;
+            let correctOpt = isRev ? w.native : w.target;
+            let wrongOpt = isRev ? wrong.native : wrong.target;
+
+            const d = { type:'round', target: promptText.toUpperCase(), opt1: duelSide===1?correctOpt:wrongOpt, opt2: duelSide===1?wrongOpt:correctOpt, side: duelSide };
+            document.getElementById('duel-target').innerText = d.target; document.getElementById('duel-target').style.color = "white"; document.getElementById('duel-opt1').innerText = d.opt1; document.getElementById('duel-opt2').innerText = d.opt2; duelActive = true;
+            if(!isBotMode) conn.send(d);
+            if(isBotMode) { let botDelay = Math.floor(Math.random() * 1500) + 700; botTimer = setTimeout(() => { if(!duelActive) return; duelActive = false; let botPickRight = Math.random() < 0.75; let botSidePick = botPickRight ? duelSide : (duelSide === 1 ? 2 : 1); processDuelHit(botSidePick, 2); }, botDelay); }
+        }
+        function handleDuelInput(s) { if(!duelActive) return; duelActive = false; if(isBotMode) clearTimeout(botTimer); if(isHost) processDuelHit(s, 1); else conn.send({type:'hit', side:s}); }
+        function processDuelHit(side, pNum) {
+            if(isDuelOver) return; let msg = pNum===1 ? "Oyuncu 1 Ateş Etti!" : "Oyuncu 2 Ateş Etti!";
+            if(pNum===1) { if(side===duelSide) p2Hp-=20; else p1Hp-=20; } else { if(side===duelSide) p1Hp-=20; else p2Hp-=20; }
+            if(!isBotMode) conn.send({type:'state', p1:p1Hp, p2:p2Hp, msg: msg}); document.getElementById('duel-target').innerText = msg; updateDuelHP();
+            if(p1Hp<=0 || p2Hp<=0) endDuel(); else setTimeout(nextDuelRound, 1200);
+        }
+        function updateDuelHP() { document.getElementById('p1-hp').style.width=p1Hp+'%'; document.getElementById('p2-hp').style.width=p2Hp+'%'; }
+        function endDuel() {
+            if(isDuelOver) return; isDuelOver = true; clearInterval(duelInt); if(isBotMode) clearTimeout(botTimer);
+            let winner = "Berabere"; if(p1Hp>p2Hp) winner = isHost?myName:oppName; else if(p2Hp>p1Hp) winner = isHost?oppName:myName;
+            let endMsg = `${winner} Kazandı!`; if(winner === myName && isHost) { endMsg += " +50 💰"; addCoins(50); }
+            document.getElementById('duel-target').innerText = endMsg; document.getElementById('duel-target').style.color = "gold";
+            if(isHost && !isBotMode) conn.send({type:'gameover', winner}); setTimeout(goHomeFromDuel, 3000); 
+        }
+        function goHomeFromDuel() { if(peer) peer.destroy(); clearInterval(duelInt); if(botTimer) clearTimeout(botTimer); switchScreen('screen-menu'); }
+
+        // MOD 3: ARABA (YENİ ÇİFT YÖNLÜ)
+        let carLane=1, carLives=3, carScore=0, carTime=60, carInt, isCarActive=false, correctLane=0, activeTheme = null;
+        const roadThemes = [ { bg: '#2e7d32', items: ['🌲','🌳','🌻'] }, { bg: '#0277bd', items: ['🌴','🏖️','🦀'] }, { bg: '#616161', items: ['🏢','🏙️','🚦'] } ];
+        function goHomeCar() { clearInterval(carInt); isCarActive=false; switchScreen('screen-menu'); }
+        function moveCar(dir) { if(!isCarActive) return; carLane += dir; if(carLane < 0) carLane = 0; if(carLane > 2) carLane = 2; document.getElementById('player-car').className = `car lane-${carLane}`; }
+        
+        document.addEventListener('keydown', (e)=>{
+            if(activeScreen==='screen-car' && isCarActive) { if(e.key==='ArrowLeft' || e.key.toLowerCase()==='a') moveCar(-1); if(e.key==='ArrowRight' || e.key.toLowerCase()==='d') moveCar(1); }
+            if(activeScreen==='screen-duel' && duelActive) { if(e.key==='ArrowLeft' || e.key.toLowerCase()==='a') handleDuelInput(1); if(e.key==='ArrowRight' || e.key.toLowerCase()==='d') handleDuelInput(2); }
+        });
+
+        function startCarGame() {
+            carLane=1; moveCar(0); carLives=3; carScore=0; carTime=60; 
+            document.getElementById('player-car').innerText = getEquippedIcon();
+            activeTheme = roadThemes[Math.floor(Math.random() * roadThemes.length)]; 
+            document.getElementById('scenery-left').style.background = activeTheme.bg; document.getElementById('scenery-right').style.background = activeTheme.bg;
+            isCarActive=true; updateCarHUD();
+            carInt = setInterval(()=>{ carTime--; updateCarHUD(); if(carTime<=0) endCarGame(); },1000); spawnObs();
+        }
+        function updateCarHUD() { document.getElementById('car-lives-display').innerText = "❤️".repeat(carLives); document.getElementById('car-score-display').innerText = `Skor: ${carScore}`; document.getElementById('car-timer-display').innerText = `Süre: ${carTime}s`; }
+        function spawnObs() {
+            if(!isCarActive) return; document.querySelectorAll('.obstacle').forEach(e=>e.remove());
+            const target = getSmartRandom(activeWords); 
+            let isRev = Math.random() > 0.5; // Çift yönlü
+            let promptText = isRev ? target.target : target.native;
+            let correctOpt = isRev ? target.native : target.target;
+
+            document.getElementById('car-target-word').innerText = `Yolcu Arıyor: ${promptText.toUpperCase()}`; document.getElementById('car-target-word').style.color = "var(--accent)"; correctLane = Math.floor(Math.random()*3);
+            
+            let wrongOptions = activeWords.filter(w => w.target !== target.target); wrongOptions.sort(() => 0.5 - Math.random());
+            let wIndex = 0;
+            for(let i=0; i<3; i++) {
+                let w = wrongOptions[wIndex];
+                let wrongOptText = w ? (isRev ? w.native : w.target) : "Hata";
+                let txt = i === correctLane ? correctOpt : wrongOptText;
+                if(i !== correctLane) wIndex++;
+                
+                let obs = document.createElement('div'); obs.className = `obstacle lane-${i}`; obs.innerText = txt; document.getElementById('road').appendChild(obs);
+                obs.animate([{top:'-60px'},{top:'350px'}], {duration: 2500, fill:'forwards'}).onfinish = () => { if(i===0) checkCarColl(); };
+            }
+            if(Math.random() > 0.3) {
+                let scLeft = document.createElement('div'); scLeft.className = 'scenery-item'; scLeft.innerText = getRandom(activeTheme.items); document.getElementById('scenery-left').appendChild(scLeft); scLeft.animate([{top:'-50px'},{top:'350px'}], {duration: 2500, fill:'forwards'}).onfinish = () => scLeft.remove();
+                let scRight = document.createElement('div'); scRight.className = 'scenery-item'; scRight.innerText = getRandom(activeTheme.items); document.getElementById('scenery-right').appendChild(scRight); scRight.animate([{top:'-50px'},{top:'350px'}], {duration: 2500, fill:'forwards'}).onfinish = () => scRight.remove();
+            }
+        }
+        function checkCarColl() {
+            if(!isCarActive) return;
+            if(carLane === correctLane) { carScore+=10; document.getElementById('car-target-word').innerText = "✅ +10 Altın!"; document.getElementById('car-target-word').style.color = "var(--success)"; } 
+            else { carLives--; document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!"; }
+            updateCarHUD(); if(carLives<=0) endCarGame(); else setTimeout(spawnObs, 800);
+        }
+        function endCarGame() { isCarActive=false; clearInterval(carInt); document.getElementById('car-target-word').innerText = `Oyun Bitti! +${carScore} Altın Kazandın!`; document.getElementById('car-target-word').style.color = "gold"; addCoins(carScore); setTimeout(goHomeCar, 2500); }
+
+        // MOD 4: ŞEFİN RESTORANI (YENİ ÇİFT YÖNLÜ)
         const recipes = [
             { name: "Çorba 🥣", steps: ["💧 Su", "🥦 Sebze", "🧂 Tuz", "🥄 Kepçe", "🥣 Kase"] },
             { name: "Kek 🍰", steps: ["🌾 Un", "🍬 Şeker", "🥚 Yumurta", "♨️ Fırın", "🍰 Dilim"] },
@@ -446,122 +532,71 @@ Ice - Buz</textarea>
             { name: "Dondurma 🍦", steps: ["🥛 Süt", "🍬 Şeker", "❄️ Dondurucu", "🍦 Külah", "🍫 Sos"] }
         ];
         
-        let kitchenTotalTime = 120; let kitchenTimerInt; 
-        let stepTimerInt; let stepTimeLeft = 5; 
-        let currentRecipeQueue = []; let currentRecipeObj = null;
-        let currentStepIndex = 0; let activeKitchenTarget = null;
+        let kitchenTotalTime = 120; let kitchenTimerInt; let stepTimerInt; let stepTimeLeft = 5; 
+        let currentRecipeQueue = []; let currentRecipeObj = null; let currentStepIndex = 0; let activeKitchenTarget = null;
         let kitchenCorrectSide = 0; let customerScore = 5; let totalKitchenScore = 0;
 
         function goHomeKitchen() { clearInterval(kitchenTimerInt); clearInterval(stepTimerInt); switchScreen('screen-menu'); }
 
         function startKitchenGame() {
-            kitchenTotalTime = 120; totalKitchenScore = 0;
-            currentRecipeQueue = [...recipes].sort(() => 0.5 - Math.random()); // Tarif sırasını karıştır
-            
-            document.getElementById('kitchen-score-display').innerText = `Skor: 0`;
-            document.getElementById('kitchen-timer-display').innerText = `Süre: ${kitchenTotalTime}s`;
-            
-            kitchenTimerInt = setInterval(() => {
-                kitchenTotalTime--;
-                document.getElementById('kitchen-timer-display').innerText = `Süre: ${kitchenTotalTime}s`;
-                if(kitchenTotalTime <= 0) endKitchenGame();
-            }, 1000);
-
+            kitchenTotalTime = 120; totalKitchenScore = 0; currentRecipeQueue = [...recipes].sort(() => 0.5 - Math.random());
+            document.getElementById('kitchen-score-display').innerText = `Skor: 0`; document.getElementById('kitchen-timer-display').innerText = `Süre: ${kitchenTotalTime}s`;
+            kitchenTimerInt = setInterval(() => { kitchenTotalTime--; document.getElementById('kitchen-timer-display').innerText = `Süre: ${kitchenTotalTime}s`; if(kitchenTotalTime <= 0) endKitchenGame(); }, 1000);
             nextRecipe();
         }
 
         function nextRecipe() {
             if(currentRecipeQueue.length === 0 || kitchenTotalTime <= 0) { endKitchenGame(); return; }
-            currentRecipeObj = currentRecipeQueue.pop();
-            currentStepIndex = 0; customerScore = 5;
-            
-            document.getElementById('recipe-name').innerText = `${currentRecipeObj.name} Siparişi!`;
-            document.getElementById('customer-emoji').innerText = "🙎‍♂️"; // Normal müşteri
-            document.getElementById('kitchen-plate').innerText = "🍽️";
-            
-            let dotsHTML = '';
-            for(let i=0; i<5; i++) dotsHTML += `<div class="recipe-dot" id="dot-${i}"></div>`;
-            document.getElementById('recipe-progress-dots').innerHTML = dotsHTML;
-            
+            currentRecipeObj = currentRecipeQueue.pop(); currentStepIndex = 0; customerScore = 5;
+            document.getElementById('recipe-name').innerText = `${currentRecipeObj.name} Siparişi!`; document.getElementById('customer-emoji').innerText = "🙎‍♂️"; document.getElementById('kitchen-plate').innerText = "🍽️";
+            let dotsHTML = ''; for(let i=0; i<5; i++) dotsHTML += `<div class="recipe-dot" id="dot-${i}"></div>`; document.getElementById('recipe-progress-dots').innerHTML = dotsHTML;
             nextCookingStep();
         }
 
         function nextCookingStep() {
             if(currentStepIndex >= 5) {
-                // Yemek bitti
-                document.getElementById('kitchen-target').innerText = "Servis Edildi! Puanlanıyor...";
-                clearInterval(stepTimerInt);
-                
-                let points = customerScore * 20; // 5 yıldız = 100 puan
-                totalKitchenScore += points;
-                document.getElementById('kitchen-score-display').innerText = `Skor: ${totalKitchenScore}`;
-                
-                if(customerScore >= 4) { document.getElementById('customer-emoji').innerText = "🤩"; addCoins(points/10); }
-                else if(customerScore > 2) document.getElementById('customer-emoji').innerText = "🙂";
-                else document.getElementById('customer-emoji').innerText = "🤢";
-                
-                setTimeout(nextRecipe, 2000);
-                return;
+                document.getElementById('kitchen-target').innerText = "Servis Edildi! Puanlanıyor..."; clearInterval(stepTimerInt);
+                let points = customerScore * 20; totalKitchenScore += points; document.getElementById('kitchen-score-display').innerText = `Skor: ${totalKitchenScore}`;
+                if(customerScore >= 4) { document.getElementById('customer-emoji').innerText = "🤩"; addCoins(points/10); } else if(customerScore > 2) document.getElementById('customer-emoji').innerText = "🙂"; else document.getElementById('customer-emoji').innerText = "🤢";
+                setTimeout(nextRecipe, 2000); return;
             }
 
             activeKitchenTarget = getSmartRandom(activeWords);
-            document.getElementById('kitchen-target').innerText = `Malzeme Ekle: ${activeKitchenTarget.native}`;
-            document.getElementById('kitchen-target').style.color = "white";
+            
+            let isRev = Math.random() > 0.5; // YENİ ÇİFT YÖNLÜ RESTORAN
+            let promptText = isRev ? activeKitchenTarget.target : activeKitchenTarget.native;
+            let correctOpt = isRev ? activeKitchenTarget.native : activeKitchenTarget.target;
+
+            document.getElementById('kitchen-target').innerText = `Ekle: ${promptText}`; document.getElementById('kitchen-target').style.color = "white";
             
             kitchenCorrectSide = Math.random() > 0.5 ? 1 : 2;
-            let wrongWord = getSmartRandom(activeWords.filter(w => w.target !== activeKitchenTarget.target));
-            if(!wrongWord) wrongWord = { target: "Hata" };
+            let wrongWords = activeWords.filter(w => w.target !== activeKitchenTarget.target);
+            let wrongWord = wrongWords.length > 0 ? getSmartRandom(wrongWords) : { target: "Hata", native: "Hata" };
+            let wrongOpt = isRev ? wrongWord.native : wrongWord.target;
 
-            let visualStr = currentRecipeObj.steps[currentStepIndex];
-            
-            document.getElementById('kitchen-opt1').innerText = kitchenCorrectSide === 1 ? activeKitchenTarget.target : wrongWord.target;
-            document.getElementById('kitchen-opt2').innerText = kitchenCorrectSide === 2 ? activeKitchenTarget.target : wrongWord.target;
+            document.getElementById('kitchen-opt1').innerText = kitchenCorrectSide === 1 ? correctOpt : wrongOpt;
+            document.getElementById('kitchen-opt2').innerText = kitchenCorrectSide === 2 ? correctOpt : wrongOpt;
 
-            // 5 Saniye Adım Sayacı
-            stepTimeLeft = 100; // Yüzde olarak
-            document.getElementById('step-timer-fill').style.width = '100%';
-            document.getElementById('step-timer-fill').style.background = 'var(--success)';
-            
+            stepTimeLeft = 100; document.getElementById('step-timer-fill').style.width = '100%'; document.getElementById('step-timer-fill').style.background = 'var(--success)';
             clearInterval(stepTimerInt);
             stepTimerInt = setInterval(() => {
-                stepTimeLeft -= 2; // Saniyede 20 kere (5 saniye)
-                document.getElementById('step-timer-fill').style.width = `${stepTimeLeft}%`;
+                stepTimeLeft -= 2; document.getElementById('step-timer-fill').style.width = `${stepTimeLeft}%`;
                 if(stepTimeLeft < 40) document.getElementById('step-timer-fill').style.background = 'var(--danger)';
-                
-                if(stepTimeLeft <= 0) {
-                    processKitchenInput(0); // Süre bitti, yanlış say
-                }
+                if(stepTimeLeft <= 0) processKitchenInput(0);
             }, 100);
         }
 
         function handleKitchenInput(side) { processKitchenInput(side); }
-
         function processKitchenInput(side) {
-            clearInterval(stepTimerInt);
-            let dot = document.getElementById(`dot-${currentStepIndex}`);
-            
-            if(side === kitchenCorrectSide) {
-                dot.classList.add('done');
-                document.getElementById('kitchen-plate').innerText = currentRecipeObj.steps[currentStepIndex].split(' ')[0]; // Emojiyi tabağa koy
-                recordStat(activeKitchenTarget.target, true);
-            } else {
-                dot.classList.add('fail');
-                customerScore--;
-                document.getElementById('kitchen-target').innerText = "❌ Yanlış Malzeme!";
-                document.getElementById('kitchen-target').style.color = "var(--danger)";
-                document.getElementById('kitchen-plate').innerText = "🔥";
-                recordStat(activeKitchenTarget.target, false);
-            }
-            
-            currentStepIndex++;
-            setTimeout(nextCookingStep, 800);
+            clearInterval(stepTimerInt); let dot = document.getElementById(`dot-${currentStepIndex}`);
+            if(side === kitchenCorrectSide) { dot.classList.add('done'); document.getElementById('kitchen-plate').innerText = currentRecipeObj.steps[currentStepIndex].split(' ')[0]; recordStat(activeKitchenTarget.target, true); } 
+            else { dot.classList.add('fail'); customerScore--; document.getElementById('kitchen-target').innerText = "❌ Yanlış Malzeme!"; document.getElementById('kitchen-target').style.color = "var(--danger)"; document.getElementById('kitchen-plate').innerText = "🔥"; recordStat(activeKitchenTarget.target, false); }
+            currentStepIndex++; setTimeout(nextCookingStep, 800);
         }
 
         function endKitchenGame() {
             clearInterval(kitchenTimerInt); clearInterval(stepTimerInt);
-            document.getElementById('kitchen-target').innerText = `Mesai Bitti! Toplam Skor: ${totalKitchenScore}`;
-            document.getElementById('kitchen-target').style.color = "gold";
-            document.getElementById('customer-emoji').innerText = "👨‍🍳";
+            document.getElementById('kitchen-target').innerText = `Mesai Bitti! Toplam Skor: ${totalKitchenScore}`; document.getElementById('kitchen-target').style.color = "gold"; document.getElementById('customer-emoji').innerText = "👨‍🍳";
             setTimeout(goHomeKitchen, 3500);
         }
     </script>
