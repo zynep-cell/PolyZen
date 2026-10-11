@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polyglot Arcade - Kelime Oyunları</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --panel-bg: #16213e;
+            --primary: #0f3460;
+            --accent: #e94560;
+            --text: #ffffff;
+            --success: #4caf50;
+            --danger: #f44336;
+        }
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color); color: var(--text);
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            overflow-x: hidden;
+        }
+        h1, h2 { text-align: center; margin-top: 20px; }
+        .container { width: 90%; max-width: 800px; background: var(--panel-bg); padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .hidden { display: none !important; }
+        
+        button {
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; margin: 5px;
+        }
+        button:hover { filter: brightness(1.2); transform: scale(1.05); }
+        input, textarea, select {
+            width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #555;
+            background: rgba(255,255,255,0.1); color: white; font-size: 16px; box-sizing: border-box;
+        }
+
+        /* Menu / Input Screen */
+        .word-list-area { display: flex; flex-direction: column; gap: 10px; }
+        .mode-selector { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; margin-top: 20px;}
+        .mode-btn { padding: 20px; font-size: 18px; flex: 1; min-width: 200px; background: var(--primary); }
+
+        /* Generic Game UI */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;}
+        
+        /* Mode 1: Scramble */
+        #scramble-word { font-size: 40px; text-align: center; letter-spacing: 5px; margin: 30px 0; color: var(--accent); font-weight: bold;}
+        .feedback { text-align: center; font-size: 18px; height: 25px; margin-bottom: 10px;}
+
+        /* Mode 2: Cowboy Duel */
+        .duel-arena { display: flex; justify-content: space-between; position: relative; height: 300px; background: #2a1b1b; border-radius: 10px; padding: 20px;}
+        .player { width: 40%; text-align: center; display: flex; flex-direction: column; justify-content: space-between;}
+        .hp-bar-container { width: 100%; height: 20px; background: #555; border-radius: 10px; overflow: hidden; margin-bottom: 10px;}
+        .hp-bar { width: 100%; height: 100%; background: var(--success); transition: width 0.3s; }
+        .cowboy-avatar { font-size: 60px; margin: 20px 0; }
+        .duel-word-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; width: 300px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 10px;}
+        .duel-options { display: flex; justify-content: space-between; width: 100%; margin-top: 10px;}
+        .duel-opt { background: #444; padding: 10px; border-radius: 5px; flex: 1; margin: 0 5px; font-weight: bold;}
+        .controls-hint { font-size: 12px; color: #aaa; }
+
+        /* Mode 3: Car/Road */
+        .road-container { position: relative; width: 100%; height: 400px; background: #333; border-left: 5px dashed white; border-right: 5px dashed white; overflow: hidden; }
+        .lane-markers { position: absolute; width: 100%; height: 100%; display: flex; justify-content: space-evenly; pointer-events: none;}
+        .lane-marker { width: 5px; height: 100%; border-left: 5px dashed rgba(255,255,255,0.3); }
+        .car { position: absolute; bottom: 20px; width: 60px; height: 80px; font-size: 50px; text-align: center; line-height: 80px; transition: left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); z-index: 10;}
+        .obstacle { position: absolute; top: -60px; width: 28%; height: 50px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 5px; text-align: center; padding: 5px; box-sizing: border-box;}
+        #car-hud { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 20px; }
+        #car-target-word { font-size: 24px; text-align: center; margin-bottom: 10px; color: yellow; }
+        
+        .lane-0 { left: 2.5%; }
+        .lane-1 { left: 35.5%; }
+        .lane-2 { left: 69%; }
+        .car.lane-0 { left: calc(16.6% - 30px); }
+        .car.lane-1 { left: calc(50% - 30px); }
+        .car.lane-2 { left: calc(83.3% - 30px); }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎮 Polyglot Arcade</h1>
+
+    <!-- EKRAN 1: KELİME GİRİŞİ VE MENÜ -->
+    <div id="screen-menu" class="container">
+        <h2>Kelime Kütüphanen</h2>
+        <p>Her satıra bir kelime ve anlamını aralarına "-" koyarak yaz (Örn: Apple - Elma). En az 5 kelime girmelisin.</p>
+        <div class="word-list-area">
+            <textarea id="wordInput" rows="6">Apple - Elma
+Book - Kitap
+Car - Araba
+Water - Su
+Fire - Ateş
+Keyboard - Klavye
+Screen - Ekran
+Journey - Yolculuk</textarea>
+            <button onclick="saveWords()">Kelimeleri Kaydet & Başla</button>
+            <p id="menu-feedback" class="feedback" style="color:var(--success);"></p>
+        </div>
+
+        <div id="game-modes" class="hidden">
+            <h3>Oyun Modunu Seç</h3>
+            <div class="mode-selector">
+                <button class="mode-btn" onclick="startMode1()">🌪️ Karışık Kuruyemiş (Anagram)</button>
+                <button class="mode-btn" onclick="startMode2()">🤠 Kovboy Düellosu (2 Kişilik)</button>
+                <button class="mode-btn" onclick="startMode3()">🚗 Kelime Şoförü (Hayatta Kalma)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN 2: MOD 1 - KARIŞIK KURUYEMİŞ -->
+    <div id="screen-mode1" class="container hidden">
+        <div class="top-bar">
+            <span>Mod: Karışık Kuruyemiş</span>
+            <button onclick="goHome()">🏠 Ana Menü</button>
+        </div>
+        <p style="text-align:center;">Harfleri karışmış kelimenin doğrusunu yaz!</p>
+        <div id="scramble-word"></div>
+        <input type="text" id="scramble-input" placeholder="Doğrusu nedir?" onkeypress="handleScrambleEnter(event)">
+        <div style="text-align:center;">
+            <button onclick="checkScramble()">Kontrol Et</button>
+            <button onclick="nextScramble()">Geç ⏭️</button>
+        </div>
+        <p id="scramble-feedback" class="feedback"></p>
+    </div>
+
+    <!-- EKRAN 3: MOD 2 - KOVBOY DÜELLOSU -->
+    <div id="screen-mode2" class="container hidden">
+        <div class="top-bar">
+            <span>Mod: Kovboy Düellosu</span>
+            <button onclick="goHome()">🏠 Ana Menü</button>
+        </div>
+        <div class="duel-arena">
+            <div class="duel-word-box">
+                <div id="duel-target" style="color:yellow; font-size: 20px; margin-bottom:5px;">Target</div>
+                <div class="duel-options">
+                    <div id="duel-opt1" class="duel-opt">Opt1</div>
+                    <div id="duel-opt2" class="duel-opt">Opt2</div>
+                </div>
+            </div>
+            
+            <div class="player" id="p1">
+                <div class="hp-bar-container"><div id="p1-hp" class="hp-bar"></div></div>
+                <div class="cowboy-avatar" id="p1-avatar">🤠</div>
+                <div class="controls-hint">Oyuncu 1<br>Sol: [A] | Sağ: [D]</div>
+            </div>
+            
+            <div class="player" id="p2">
+                <div class="hp-bar-container"><div id="p2-hp" class="hp-bar" style="background:#2196F3;"></div></div>
+                <div class="cowboy-avatar" id="p2-avatar">🤠</div>
+                <div class="controls-hint">Oyuncu 2<br>Sol: [Sol Ok] | Sağ: [Sağ Ok]</div>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:20px;">
+            <button id="duel-start-btn" onclick="startDuelRound()">🔥 Düelloyu Başlat</button>
+            <p id="duel-feedback" class="feedback"></p>
+        </div>
+    </div>
+
+    <!-- EKRAN 4: MOD 3 - ARABA / KELİME ŞOFÖRÜ -->
+    <div id="screen-mode3" class="container hidden">
+        <div class="top-bar">
+            <span>Mod: Kelime Şoförü</span>
+            <div>Süre: <select id="car-time-select"><option value="60">1 Dakika</option><option value="120">2 Dakika</option></select></div>
+            <button onclick="goHome()">🏠 Ana Menü</button>
+        </div>
+        
+        <div id="car-hud">
+            <span id="car-timer-display">Süre: 60s</span>
+            <span id="car-lives-display">Can: ❤️❤️❤️</span>
+            <span id="car-score-display">Skor: 0</span>
+        </div>
+        <div id="car-target-word">Hedef Kelime Bekleniyor...</div>
+
+        <div class="road-container" id="road">
+            <div class="lane-markers"><div class="lane-marker"></div><div class="lane-marker"></div></div>
+            <div id="player-car" class="car lane-1">🚘</div>
+            <!-- Engeller JS ile buraya eklenecek -->
+        </div>
+        
+        <div style="text-align:center; margin-top:15px;">
+            <button id="car-start-btn" onclick="startCarGame()">Yarışı Başlat</button>
+            <p class="controls-hint">Kontrol: Sol ve Sağ Yön Tuşları (veya A ve D). Doğru anlamın olduğu şeride geç!</p>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL DEĞİŞKENLER ---
+        let wordList = [];
+        let activeScreen = 'screen-menu';
+
+        // --- YARDIMCI FONKSİYONLAR ---
+        function switchScreen(screenId) {
+            document.getElementById(activeScreen).classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+            activeScreen = screenId;
+            
+            // Etkinlik dinleyicilerini temizle (çakışmaları önlemek için)
+            document.onkeydown = null;
+        }
+
+        function goHome() {
+            switchScreen('screen-menu');
+            clearInterval(carObstacleInterval);
+            clearInterval(carTimerInterval);
+        }
+
+        function getRandomInt(max) { return Math.floor(Math.random() * max); }
+        
+        function shuffleString(str) {
+            let arr = str.split('');
+            for(let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            let result = arr.join('');
+            return result === str && str.length > 1 ? shuffleString(str) : result; // Aynı çıkmasını engelle
+        }
+
+        // --- VERİ GİRİŞİ ---
+        function saveWords() {
+            const rawData = document.getElementById('wordInput').value;
+            const lines = rawData.split('\n');
+            wordList = [];
+            
+            lines.forEach(line => {
+                if(line.includes('-')) {
+                    const parts = line.split('-');
+                    const eng = parts[0].trim();
+                    const tr = parts[1].trim();
+                    if(eng && tr) wordList.push({ eng, tr });
+                }
+            });
+
+            const feedback = document.getElementById('menu-feedback');
+            if(wordList.length < 5) {
+                feedback.style.color = "var(--danger)";
+                feedback.innerText = "Lütfen formatı bozmadan en az 5 kelime girin.";
+                document.getElementById('game-modes').classList.add('hidden');
+            } else {
+                feedback.style.color = "var(--success)";
+                feedback.innerText = `${wordList.length} kelime başarıyla yüklendi! Oyun modunu seçin.`;
+                document.getElementById('game-modes').classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // MOD 1: KARIŞIK KURUYEMİŞ (SCRAMBLE)
+        // ==========================================
+        let currentScrambleWord = null;
+
+        function startMode1() {
+            switchScreen('screen-mode1');
+            nextScramble();
+        }
+
+        function nextScramble() {
+            const rndIndex = getRandomInt(wordList.length);
+            currentScrambleWord = wordList[rndIndex];
+            
+            // Sadece ingilizce kelimeyi karıştır
+            const scrambled = shuffleString(currentScrambleWord.eng.toLowerCase());
+            document.getElementById('scramble-word').innerText = scrambled.toUpperCase();
+            document.getElementById('scramble-input').value = '';
+            document.getElementById('scramble-feedback').innerText = `İpucu: Anlamı '${currentScrambleWord.tr}'`;
+            document.getElementById('scramble-feedback').style.color = 'var(--text)';
+            document.getElementById('scramble-input').focus();
+        }
+
+        function checkScramble() {
+            const input = document.getElementById('scramble-input').value.trim().toLowerCase();
+            const feedback = document.getElementById('scramble-feedback');
+            if(input === currentScrambleWord.eng.toLowerCase()) {
+                feedback.innerText = "✅ Doğru!";
+                feedback.style.color = "var(--success)";
+                setTimeout(nextScramble, 1000);
+            } else {
+                feedback.innerText = "❌ Yanlış, tekrar dene!";
+                feedback.style.color = "var(--danger)";
+            }
+        }
+
+        function handleScrambleEnter(e) { if(e.key === 'Enter') checkScramble(); }
+
+        // ==========================================
+        // MOD 2: KOVBOY DÜELLOSU
+        // ==========================================
+        let p1Hp = 100, p2Hp = 100;
+        let duelCorrectSide = 0; // 1: Left (opt1), 2: Right (opt2)
+        let duelActive = false;
+
+        function startMode2() {
+            switchScreen('screen-mode2');
+            p1Hp = 100; p2Hp = 100;
+            updateDuelHp();
+            document.getElementById('duel-feedback').innerText = "";
+            document.getElementById('duel-target').innerText = "Hazır Olun!";
+            document.getElementById('duel-opt1').innerText = "?";
+            document.getElementById('duel-opt2').innerText = "?";
+        }
+
+        function updateDuelHp() {
+            document.getElementById('p1-hp').style.width = p1Hp + '%';
+            document.getElementById('p2-hp').style.width = p2Hp + '%';
+            if(p1Hp <= 0) endGameDuel("Oyuncu 2 (Mavi) Kazandı! 🏆");
+            if(p2Hp <= 0) endGameDuel("Oyuncu 1 (Yeşil) Kazandı! 🏆");
+        }
+
+        function endGameDuel(msg) {
+            duelActive = false;
+            document.getElementById('duel-feedback').innerText = msg;
+            document.getElementById('duel-start-btn').innerText = "Yeniden Oyna";
+            document.getElementById('duel-start-btn').style.display = "inline-block";
+            document.onkeydown = null;
+        }
+
+        function startDuelRound() {
+            if(p1Hp <= 0 || p2Hp <= 0) { p1Hp = 100; p2Hp = 100; updateDuelHp(); }
+            document.getElementById('duel-start-btn').style.display = "none";
+            document.getElementById('duel-feedback').innerText = "Dikkat...";
+            
+            setTimeout(() => {
+                const wordObj = wordList[getRandomInt(wordList.length)];
+                document.getElementById('duel-target').innerText = wordObj.tr.toUpperCase(); // Türkçe anlam hedefleniyor
+                
+                const correctWord = wordObj.eng;
+                const wrongWord = shuffleString(correctWord); // Yanlış kelime karıştırılmış hali
+
+                duelCorrectSide = Math.random() > 0.5 ? 1 : 2;
+                if(duelCorrectSide === 1) {
+                    document.getElementById('duel-opt1').innerText = correctWord;
+                    document.getElementById('duel-opt2').innerText = wrongWord;
+                } else {
+                    document.getElementById('duel-opt1').innerText = wrongWord;
+                    document.getElementById('duel-opt2').innerText = correctWord;
+                }
+
+                duelActive = true;
+                document.getElementById('duel-feedback').innerText = "Ateş!";
+                setupDuelControls();
+            }, getRandomInt(1000) + 1000); // 1-2 sn arası rastgele bekleme
+        }
+
+        function setupDuelControls() {
+            document.onkeydown = function(e) {
+                if(!duelActive) return;
+                
+                let p1Hit = 0; // 1 for left, 2 for right
+                let p2Hit = 0;
+
+                if(e.key.toLowerCase() === 'a') p1Hit = 1;
+                if(e.key.toLowerCase() === 'd') p1Hit = 2;
+                if(e.key === 'ArrowLeft') p2Hit = 1;
+                if(e.key === 'ArrowRight') p2Hit = 2;
+
+                if(p1Hit > 0) {
+                    duelActive = false; // Tur biter
+                    if(p1Hit === duelCorrectSide) {
+                        p2Hp -= 20; 
+                        document.getElementById('duel-feedback').innerText = "Oyuncu 1 Doğru Vurdu! 🔫";
+                        document.getElementById('p2-avatar').innerText = "🤕";
+                    } else {
+                        p1Hp -= 20;
+                        document.getElementById('duel-feedback').innerText = "Oyuncu 1 Yanlış Bastı! Kendini Vurdu! 💥";
+                    }
+                    finalizeDuelRound();
+                } else if(p2Hit > 0) {
+                    duelActive = false;
+                    if(p2Hit === duelCorrectSide) {
+                        p1Hp -= 20;
+                        document.getElementById('duel-feedback').innerText = "Oyuncu 2 Doğru Vurdu! 🔫";
+                        document.getElementById('p1-avatar').innerText = "🤕";
+                    } else {
+                        p2Hp -= 20;
+                        document.getElementById('duel-feedback').innerText = "Oyuncu 2 Yanlış Bastı! Kendini Vurdu! 💥";
+                    }
+                    finalizeDuelRound();
+                }
+            };
+        }
+
+        function finalizeDuelRound() {
+            updateDuelHp();
+            if(p1Hp > 0 && p2Hp > 0) {
+                setTimeout(() => {
+                    document.getElementById('p1-avatar').innerText = "🤠";
+                    document.getElementById('p2-avatar').innerText = "🤠";
+                    startDuelRound();
+                }, 1500);
+            }
+        }
+
+        // ==========================================
+        // MOD 3: KELİME ŞOFÖRÜ
+        // ==========================================
+        let carLane = 1; // 0: sol, 1: orta, 2: sağ
+        let carLives = 3;
+        let carScore = 0;
+        let carTime = 60;
+        let carTimerInterval;
+        let carObstacleInterval;
+        let isCarGameActive = false;
+        let currentTargetWordCar = null;
+        let correctLane = 0;
+
+        function startMode3() {
+            switchScreen('screen-mode3');
+            document.getElementById('car-start-btn').style.display = "inline-block";
+            resetCarGameUi();
+        }
+
+        function resetCarGameUi() {
+            carLane = 1; updateCarPosition();
+            carLives = 3; carScore = 0;
+            updateCarHUD();
+            document.querySelectorAll('.obstacle').forEach(el => el.remove());
+            document.getElementById('car-target-word').innerText = "Başlamak için butona basın...";
+        }
+
+        function updateCarPosition() {
+            const carEl = document.getElementById('player-car');
+            carEl.className = `car lane-${carLane}`;
+        }
+
+        function updateCarHUD() {
+            document.getElementById('car-lives-display').innerText = "Can: " + "❤️".repeat(carLives);
+            document.getElementById('car-score-display').innerText = "Skor: " + carScore;
+            document.getElementById('car-timer-display').innerText = "Süre: " + carTime + "s";
+        }
+
+        function startCarGame() {
+            resetCarGameUi();
+            carTime = parseInt(document.getElementById('car-time-select').value);
+            document.getElementById('car-start-btn').style.display = "none";
+            isCarGameActive = true;
+            
+            // Kontroller
+            document.onkeydown = function(e) {
+                if(!isCarGameActive) return;
+                if((e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') && carLane > 0) carLane--;
+                if((e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') && carLane < 2) carLane++;
+                updateCarPosition();
+            };
+
+            // Timer
+            carTimerInterval = setInterval(() => {
+                carTime--;
+                updateCarHUD();
+                if(carTime <= 0) endCarGame("Süre Doldu! 🏁 Skorun: " + carScore);
+            }, 1000);
+
+            spawnObstacles();
+        }
+
+        function spawnObstacles() {
+            if(!isCarGameActive) return;
+
+            const road = document.getElementById('road');
+            document.querySelectorAll('.obstacle').forEach(el => el.remove()); // Ekranı temizle
+
+            // Hedef kelime seç
+            currentTargetWordCar = wordList[getRandomInt(wordList.length)];
+            document.getElementById('car-target-word').innerText = `Yolcu istiyor: ${currentTargetWordCar.eng.toUpperCase()}`;
+
+            // 3 şerit için 1 doğru, 2 yanlış cevap seç
+            correctLane = getRandomInt(3);
+            let options = [];
+            
+            // Yanlış cevapları doldur
+            let wrongOptions = wordList.filter(w => w.tr !== currentTargetWordCar.tr);
+            // Eğer liste çok kısaysa aynı yanlışı birden fazla kez koyabiliriz
+            for(let i=0; i<3; i++) {
+                if(i === correctLane) {
+                    options.push(currentTargetWordCar.tr);
+                } else {
+                    const rndWrong = wrongOptions[getRandomInt(wrongOptions.length)];
+                    options.push(rndWrong ? rndWrong.tr : "Hata");
+                }
+            }
+
+            // CSS ile kutuları oluştur ve düşür
+            for(let i=0; i<3; i++) {
+                let obs = document.createElement('div');
+                obs.className = `obstacle lane-${i}`;
+                obs.innerText = options[i];
+                road.appendChild(obs);
+
+                // Düşme animasyonu (Web API kullanıyoruz)
+                obs.animate([
+                    { top: '-60px' },
+                    { top: '400px' }
+                ], {
+                    duration: 3000, // 3 saniyede düşer (zorluk için bu süre azaltılabilir)
+                    easing: 'linear',
+                    fill: 'forwards'
+                }).onfinish = () => {
+                    if(i === 0) checkCarCollision(); // 3 kutu da aynı anda ineceği için 1 kez kontrol etmek yeterli
+                };
+            }
+        }
+
+        function checkCarCollision() {
+            if(!isCarGameActive) return;
+
+            if(carLane === correctLane) {
+                carScore += 10;
+                document.getElementById('car-target-word').innerText = "✅ Başarılı! Sıradaki...";
+                document.getElementById('car-target-word').style.color = "var(--success)";
+            } else {
+                carLives--;
+                document.getElementById('car-target-word').innerText = "💥 ÇARPTIN!";
+                document.getElementById('car-target-word').style.color = "var(--danger)";
+                document.getElementById('player-car').style.transform = "rotate(20deg)";
+                setTimeout(() => document.getElementById('player-car').style.transform = "rotate(0deg)", 300);
+            }
+
+            updateCarHUD();
+
+            if(carLives <= 0) {
+                endCarGame("Oyun Bitti! 💥 Skorun: " + carScore);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('car-target-word').style.color = "yellow";
+                    spawnObstacles();
+                }, 1000);
+            }
+        }
+
+        function endCarGame(msg) {
+            isCarGameActive = false;
+            clearInterval(carTimerInterval);
+            document.onkeydown = null;
+            document.getElementById('car-target-word').innerText = msg;
+            document.getElementById('car-start-btn').innerText = "Tekrar Oyna";
+            document.getElementById('car-start-btn').style.display = "inline-block";
+            document.getElementById('car-target-word').style.color = "white";
+        }
+
+    </script>
+</body>
+</html>
